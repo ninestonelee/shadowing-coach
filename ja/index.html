@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shadowing Coach 日本語 · なおこ「昨日、なにをしましたか？」</title>
+<style>
+  :root{--bg:#f6f7f9;--card:#fff;--ink:#1d2433;--sub:#6b7385;--line:#e4e7ee;--acc:#635bff;--acc2:#eceaff;--ok:#16a34a;--okbg:#e8f7ee;--bad:#dc2626;--badbg:#fdecec;--warn:#d97706}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  header h1{font-size:17px;margin:0;font-weight:700}
+  header h1 span{color:var(--sub);font-weight:500;font-size:13px;margin-left:8px}
+  .stats{display:flex;gap:14px;font-size:13px;color:var(--sub)}
+  .stats b{color:var(--ink)}
+  .wrap{display:grid;grid-template-columns:minmax(420px,1.15fr) minmax(320px,.85fr);gap:18px;padding:18px 22px;max-width:1400px;margin:0 auto}
+  @media (max-width:900px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .player{aspect-ratio:16/9;width:100%;border-radius:10px;overflow:hidden;background:#000}
+  .player iframe{width:100%;height:100%;transition:filter .2s}
+  .player.blur iframe{filter:blur(22px) brightness(.8)}
+  .left{display:flex;flex-direction:column;gap:14px}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .step{font-size:12px;padding:5px 10px;border-radius:999px;background:#f1f2f6;color:var(--sub);border:1px solid transparent}
+  .step b{color:var(--acc)}
+  .meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--sub);margin-bottom:8px}
+  .sent{font-size:24px;line-height:1.55;font-weight:600;letter-spacing:-.1px;min-height:74px}
+  .sent{font-size:28px;line-height:2.1;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
+  .sent rt{font-size:12px;color:var(--sub);font-weight:500}
+  .sent.nofuri rt{visibility:hidden}
+  .sent .w.opt{color:#a3a9b8;font-weight:500}
+  .sent .w.p{cursor:default}
+  .sent.hidden rt{visibility:hidden}
+  .sw{font-size:13px;font-weight:600;color:var(--acc);text-decoration:none;margin-left:10px}
+  .item div:nth-child(2){font-family:"Hiragino Sans","Noto Sans JP",sans-serif}
+  .sent .w{cursor:pointer;border-radius:5px;padding:0 1px}
+  .sent .w:hover{background:var(--acc2)}
+  .sent .w.ok{color:var(--ok)}
+  .sent .w.miss{color:var(--bad);text-decoration:underline wavy;text-underline-offset:6px}
+  .sent .w.ok rt{color:var(--ok)} .sent .w.miss rt{color:var(--bad)}
+  .sent.hidden .w{color:transparent!important;background:#eceef3;text-decoration:none}
+  .ko{font-size:15px;color:var(--sub);margin-top:8px;min-height:22px}
+  .ko.hidden{visibility:hidden}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+  button{font:inherit;font-size:14px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 13px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  button:hover{border-color:#c9cde0}
+  button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+  button.rec{background:#fff1f1;border-color:#f3c2c2;color:var(--bad)}
+  button.rec.on{background:var(--bad);color:#fff;border-color:var(--bad);animation:pulse 1.2s infinite}
+  button.on{background:var(--acc2);border-color:var(--acc);color:var(--acc)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  @keyframes pulse{50%{opacity:.7}}
+  kbd{font-size:11px;border:1px solid currentColor;border-radius:4px;padding:0 4px;opacity:.6;font-family:inherit}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{border:0;border-radius:0;padding:8px 11px}
+  .seg button+button{border-left:1px solid var(--line)}
+  .seg button.sel{background:var(--ink);color:#fff}
+  .small{font-size:12px;color:var(--sub)}
+  .result{margin-top:14px;padding:12px 14px;border-radius:12px;background:#f8f9fb;border:1px dashed var(--line);display:none}
+  .result.show{display:block}
+  .score{font-size:28px;font-weight:800}
+  .score.good{color:var(--ok)} .score.mid{color:var(--warn)} .score.low{color:var(--bad)}
+  .heard{font-size:14px;color:var(--sub);margin-top:4px}
+  .tips{font-size:13px;color:var(--sub);line-height:1.6;margin:0;padding-left:18px}
+  .list{max-height:calc(100vh - 110px);overflow:auto;padding:6px}
+  .item{display:grid;grid-template-columns:38px 1fr 44px;gap:8px;padding:9px 10px;border-radius:10px;cursor:pointer;align-items:start;font-size:14px;line-height:1.45}
+  .item:hover{background:#f3f4f8}
+  .item.cur{background:var(--acc2);outline:1px solid #cfcaff}
+  .item .n{color:var(--sub);font-size:12px;padding-top:2px}
+  .item .t{font-size:11px;color:var(--sub)}
+  .badge{font-size:12px;font-weight:700;text-align:center;border-radius:8px;padding:2px 0}
+  .badge.good{background:var(--okbg);color:var(--ok)} .badge.mid{background:#fff4e0;color:var(--warn)} .badge.low{background:var(--badbg);color:var(--bad)}
+  .filters{display:flex;gap:6px;padding:4px 6px 10px;border-bottom:1px solid var(--line);margin-bottom:6px;align-items:center}
+  .filters input{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px}
+  .banner{background:#fff7e6;border:1px solid #f5d38f;color:#7a4b00;padding:12px 16px;border-radius:12px;margin:14px 22px 0;font-size:14px;display:none}
+  .nudge{display:flex;gap:4px;align-items:center}
+  .nudge button{padding:4px 8px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Shadowing Coach 日本語 <span>Daily Japanese with Naoko · 昨日、なにをしましたか？</span> <a class="sw" href="../">English 강연 →</a></h1>
+  <div class="stats">
+    <div>연습한 문장 <b id="stDone">0</b>/<b id="stTotal">0</b></div>
+    <div>80점 이상 <b id="stGood">0</b></div>
+    <div>평균 <b id="stAvg">-</b></div>
+  </div>
+</header>
+<div class="banner" id="fileBanner">
+  이 파일을 더블클릭(file://)으로 열면 YouTube 영상과 마이크가 막힐 수 있어요. 같은 폴더의 <b>start.command</b>를 실행하거나, 터미널에서 <code>python3 -m http.server 8777</code> 후 <b>http://localhost:8777</b> 로 열어주세요.
+</div>
+<div class="wrap">
+  <div class="left">
+    <div class="card">
+      <div class="player"><div id="yt"></div></div>
+      <div class="small" style="margin-top:8px">원본 일본어 음성으로 재생됩니다. 영상 화면에 자막이 박혀 있어서, H(문장 숨기기)를 누르면 영상도 흐리게 가려져요.</div>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step"><b>1</b> 눈 감고 듣기 (H로 문장 숨김)</div>
+        <div class="step"><b>2</b> 보면서 3번 반복 (L)</div>
+        <div class="step"><b>3</b> 녹음 후 원문과 비교 (R → C)</div>
+        <div class="step"><b>4</b> 겹쳐 말하기 쉐도잉 (S)</div>
+      </div>
+      <div class="meta"><span id="curMeta">#1</span>
+        <span class="nudge">구간 보정 시작 <button data-n="s,-0.3">-</button><button data-n="s,0.3">+</button> 끝 <button data-n="e,-0.3">-</button><button data-n="e,0.3">+</button></span></div>
+      <div class="sent" id="sent"></div>
+      <div class="ko" id="ko"></div>
+      <div class="row">
+        <button class="primary" id="bPlay">▶ 원문 듣기 <kbd>Space</kbd></button>
+        <button id="bLoop">↻ 반복 <kbd>L</kbd></button>
+        <div class="seg" id="speed">
+          <button data-r="0.5">0.5x</button><button data-r="0.75">0.75x</button><button data-r="1" class="sel">1x</button>
+        </div>
+        <button id="bHide">문장·영상 숨기기 <kbd>H</kbd></button>
+        <button id="bKo">한국어 뜻 <kbd>K</kbd></button>
+        <button id="bFuri" class="on">후리가나 <kbd>F</kbd></button>
+      </div>
+      <div class="row">
+        <button class="rec" id="bRec">● 따라 말하기 녹음 <kbd>R</kbd></button>
+        <button id="bShadow">◎ 쉐도잉 (원문+녹음 동시) <kbd>S</kbd></button>
+        <button id="bMine" disabled>▶ 내 목소리 <kbd>P</kbd></button>
+        <button id="bCmp" disabled>⇄ 원문 → 나 비교 <kbd>C</kbd></button>
+      </div>
+      <div class="row">
+        <button id="bPrev">← 이전</button>
+        <button id="bNext">다음 →</button>
+        <span class="small" id="status"></span>
+      </div>
+      <div class="result" id="result">
+        <div style="display:flex;align-items:baseline;gap:12px"><div class="score" id="score">-</div><div class="small" id="scoreNote"></div></div>
+        <div class="heard" id="heard"></div>
+      </div>
+    </div>
+    <div class="card">
+      <ul class="tips">
+        <li>한자 위 작은 글자가 후리가나(읽는 법)예요. 익숙해지면 F로 끄고 연습하세요.</li>
+        <li>단어를 클릭하면 일본어 TTS로 그 부분만 들려줘요(참고용). 정답 기준은 항상 나오코 씨 원음이에요.</li>
+        <li>점수는 음성 인식이 내 발음을 얼마나 알아들었는지(명료도)예요. 한자로 받아써도 히라가나로 받아써도 맞게 쳐요. 회색 (괄호)는 말해도 안 해도 돼요.</li>
+        <li>쉐도잉은 이어폰을 끼고 하세요. 억양(높낮이 악센트)은 점수로 안 잡히니 C로 귀로 맞춰보세요.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="padding:10px">
+    <div class="filters">
+      <input id="q" placeholder="문장 검색 (일본어/히라가나/한국어)">
+      <button id="fWeak" title="80점 미만 연습 문장만">약한 문장</button>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+<script>
+const VIDEO_ID = 'JYEutL_zQQc';
+const S = [{"s": 0, "e": 2, "ja": "{みなさん|皆さん}、{こんにちは|こんにちわ}！{なおこ|直子/尚子/奈緒子}です。", "ko": "여러분, 안녕하세요! 나오코예요."}, {"s": 2, "e": 7, "ja": "{みなさん|皆さん}、[昨日|きのう]は、[何|なに]をしましたか？", "ko": "여러분, 어제는 뭘 했어요?"}, {"s": 7, "e": 11, "ja": "[今日|きょう]は、[昨日|きのう]したことについて[話|はな]します。", "ko": "오늘은 어제 한 일에 대해 이야기할게요."}, {"s": 11, "e": 17, "ja": "{どれくらい|どれぐらい}[理解|りかい]できるかチャレンジです。どうぞ！", "ko": "얼마나 알아들을 수 있는지 도전이에요. 시작!"}, {"s": 19, "e": 24, "ja": "[私|わたし]は、[昨日|きのう]、[朝|あさ][8時|はちじ]{くらい|ぐらい/位}に[起|お]きて、", "ko": "저는 어제 아침 8시쯤 일어나서"}, {"s": 24, "e": 29, "ja": "[顔|かお]を[洗|あら]って、[歯|は]を{みがきました|磨きました}。", "ko": "세수하고 이를 닦았어요."}, {"s": 29, "e": 33, "ja": "そして、{メイク|メーク}をして[着替|きが]えました。", "ko": "그리고 화장하고 옷을 갈아입었어요."}, {"s": 33, "e": 37, "ja": "そして、お[水|みず]を[一杯|いっぱい][飲|の]みました。", "ko": "그리고 물을 한 잔 마셨어요."}, {"s": 37, "e": 42, "ja": "あの、[私|わたし]は[普段|ふだん]、[朝|あさ]{ごはん|ご飯}を[全然|ぜんぜん][食|た]べません。", "ko": "음, 저는 평소에 아침밥을 전혀 안 먹어요."}, {"s": 42, "e": 47, "ja": "[高校生|こうこうせい]の[時|とき]は、よく[朝|あさ]{ごはん|ご飯}を[食|た]べていました。", "ko": "고등학생 때는 아침밥을 자주 먹었어요."}, {"s": 47, "e": 53, "ja": "[例|たと]えば、{みそしる|味噌汁/みそ汁}とか、{ごはん|ご飯}とか、パン。", "ko": "예를 들면 된장국이나 밥이나 빵."}, {"s": 53, "e": 58, "ja": "そして、[前|まえ]の[日|ひ]の[夜|よる]{ごはん|ご飯}に[食|た]べた[残|のこ]り、", "ko": "그리고 전날 저녁에 먹고 남은 것,"}, {"s": 58, "e": 62, "ja": "[残|のこ]り[物|もの]をよく[食|た]べていました。", "ko": "남은 음식을 자주 먹었어요."}, {"s": 62, "e": 64, "ja": "[残|のこ]り[物|もの]です。", "ko": "남은 음식이요."}, {"s": 64, "e": 68, "ja": "でも、[最近|さいきん]は、[全然|ぜんぜん][朝|あさ]{ごはん|ご飯}を[食|た]べません。", "ko": "그런데 요즘은 아침밥을 전혀 안 먹어요."}, {"s": 68, "e": 75, "ja": "そして、[洗濯|せんたく](を)して、[洗濯物|せんたくもの]を[干|ほ]しました。", "ko": "그리고 빨래를 해서 빨래를 널었어요."}, {"s": 75, "e": 83, "ja": "そして、[朝|あさ]の[9時|くじ]{くらい|ぐらい/位}に[私|わたし]の[親戚|しんせき]の[畑|はたけ]に[行|い]きました。", "ko": "그리고 아침 9시쯤 친척네 밭에 갔어요."}, {"s": 83, "e": 87, "ja": "[午前中|ごぜんちゅう]は、[畑|はたけ]で[少|すこ]し[働|はたら]きました。", "ko": "오전에는 밭에서 조금 일했어요."}, {"s": 88, "e": 95, "ja": "あの〜、[畑|はたけ]でビーツの{たね|種}を{まきました|蒔きました/撒きました/巻きました}。ビーツは[赤|あか]い[野菜|やさい]ですね。", "ko": "음~, 밭에 비트 씨를 뿌렸어요. 비트는 빨간 채소죠."}, {"s": 95, "e": 98, "ja": "{たくさん|沢山}、{たね|種}を{まいた|蒔いた/撒いた/巻いた}ので、[食|た]べるのが[楽|たの]しみです。", "ko": "씨를 많이 뿌려서 먹을 게 기대돼요."}, {"s": 100, "e": 103, "ja": "そして、お[昼|ひる](ごはん)は[家|いえ]に[帰|かえ]りました。", "ko": "그리고 점심(밥)은 집에 돌아왔어요."}, {"s": 103, "e": 107, "ja": "[家|いえ]に[帰|かえ]って、お[昼|ひる]{ごはん|ご飯}を[食|た]べました。", "ko": "집에 돌아와서 점심을 먹었어요."}, {"s": 107, "e": 109, "ja": "[昨日|きのう]は、[何|なに]を[食|た]べたかな…", "ko": "어제는 뭘 먹었더라…"}, {"s": 109, "e": 111, "ja": "あ、パスタ！パスタです。", "ko": "아, 파스타! 파스타예요."}, {"s": 112, "e": 117, "ja": "トマトソースとアンチョビとチーズのパスタを[作|つく]りました。", "ko": "토마토소스랑 안초비랑 치즈 파스타를 만들었어요."}, {"s": 117, "e": 123, "ja": "[知|し]り[合|あ]いが[家|いえ]に[来|き]たので、{たくさん|沢山}[作|つく]りました。", "ko": "아는 사람이 집에 와서 많이 만들었어요."}, {"s": 123, "e": 129, "ja": "トマトソースとチーズとアンチョビ。この[組|く]み[合|あ]わせは[最高|さいこう]です。", "ko": "토마토소스, 치즈, 안초비. 이 조합은 최고예요."}, {"s": 129, "e": 131, "ja": "[本当|ほんとう]に{おいしい|美味しい}。", "ko": "정말 맛있어요."}, {"s": 131, "e": 136, "ja": "そしてご[飯|はん]を[食|た]べた{あと|後}、カフェに[行|い]きました。", "ko": "그리고 밥을 먹은 뒤 카페에 갔어요."}, {"s": 136, "e": 138, "ja": "[車|くるま]でカフェに[行|い]きました。", "ko": "차로 카페에 갔어요."}, {"s": 138, "e": 146, "ja": "{みなさん|皆さん}は[車|くるま]を[運転|うんてん]するのは[好|す]きですか？[私|わたし]はあまり[好|す]きじゃなかったです。", "ko": "여러분은 운전하는 거 좋아해요? 저는 별로 안 좋아했어요."}, {"s": 146, "e": 152, "ja": "[電車|でんしゃ]に[乗|の]るほうが[好|す]きでした。でも、[最近|さいきん]は[車|くるま]を[運転|うんてん]するのも[好|す]きです。", "ko": "전철 타는 게 더 좋았어요. 그런데 요즘은 운전하는 것도 좋아요."}, {"s": 153, "e": 161, "ja": "そう、[午後|ごご]は、カフェでコーヒーを[飲|の]みながら[日本語|にほんご]とスペイン[語|ご]の[勉強|べんきょう]をしました。", "ko": "맞아요, 오후에는 카페에서 커피를 마시면서 일본어와 스페인어 공부를 했어요."}, {"s": 161, "e": 164, "ja": "そう、[日本語|にほんご]です。[日本人|にほんじん]だけど、", "ko": "네, 일본어요. 일본 사람이지만"}, {"s": 164, "e": 172, "ja": "[最近|さいきん]、[日本語|にほんご]が[難|むずか]しいなと[思|おも]って[日本語|にほんご]を[勉強|べんきょう]しています。{むずかしい|難しい}。", "ko": "요즘 일본어가 어렵다고 느껴서 일본어를 공부하고 있어요. 어려워요."}, {"s": 172, "e": 177, "ja": "そして、[家|いえ]に[帰|かえ]る[前|まえ]に、スーパーに[行|い]きました。", "ko": "그리고 집에 가기 전에 슈퍼에 갔어요."}, {"s": 177, "e": 179, "ja": "[夕方|ゆうがた]の[5時|ごじ]{くらい|ぐらい/位}かな。", "ko": "저녁 5시쯤이었나."}, {"s": 179, "e": 186, "ja": "あの〜、[夕方|ゆうがた]スーパーに[行|い]くと[半額|はんがく]の{さしみ|刺身}とか", "ko": "음~, 저녁에 슈퍼에 가면 반값 회라든지"}, {"s": 186, "e": 190, "ja": "{からあげ|唐揚げ/唐揚}とか{おにぎり|お握り}が[売|う]られています。", "ko": "가라아게, 주먹밥 같은 걸 팔아요."}, {"s": 191, "e": 194, "ja": "だけど、[昨日|きのう]は[何|なに]も[買|か]いませんでした。", "ko": "그런데 어제는 아무것도 안 샀어요."}, {"s": 194, "e": 198, "ja": "で、[6時|ろくじ]{くらい|ぐらい/位}に[家|いえ]に[帰|かえ]りました。", "ko": "그래서 6시쯤 집에 돌아왔어요."}, {"s": 198, "e": 204, "ja": "そして、[夜|よる]{ごはん|ご飯}は、[筑前煮|ちくぜんに]という[日本|にほん]の[料理|りょうり]を[食|た]べました。", "ko": "그리고 저녁은 지쿠젠니라는 일본 요리를 먹었어요."}, {"s": 204, "e": 210, "ja": "これは、{にんじん|人参}とか、{れんこん|蓮根}とか、{とりにく|鶏肉/とり肉}が[入|はい]っています。", "ko": "이건 당근, 연근, 닭고기 같은 게 들어가요."}, {"s": 210, "e": 214, "ja": "[少|すこ]し{あまい|甘い}[料理|りょうり]かな。{おいしかった|美味しかった}です！", "ko": "조금 달달한 요리랄까. 맛있었어요!"}, {"s": 214, "e": 219, "ja": "そして、[夜|よる]ご[飯|はん]を[食|た]べた{あと|後}、お[皿|さら]を[洗|あら]ったり、", "ko": "그리고 저녁을 먹은 뒤 설거지를 하거나"}, {"s": 219, "e": 225, "ja": "お[皿|さら]を{ふいたり|拭いたり}、{あと|後}、[洗濯物|せんたくもの]を{たたんだり|畳んだり}しました。", "ko": "그릇을 닦거나, 그리고 빨래를 개거나 했어요."}, {"s": 225, "e": 228, "ja": "[家事|かじ]をしました。[少|すこ]しだけ。[家事|かじ]。", "ko": "집안일을 했어요. 조금만요. 집안일."}, {"s": 229, "e": 233, "ja": "そして、{そのあと|その後}、[YouTube|ゆーちゅーぶ]の[編集|へんしゅう]をしたり、", "ko": "그리고 그다음에 유튜브 편집을 하거나"}, {"s": 233, "e": 237, "ja": "ブログを[書|か]いたりしました。", "ko": "블로그를 쓰거나 했어요."}, {"s": 237, "e": 240, "ja": "{そのあと|その後}、お[風呂|ふろ]に[入|はい]りました。", "ko": "그다음 목욕을 했어요."}, {"s": 240, "e": 243, "ja": "あの〜、シャワー、シャワーを{あびました|浴びました}。", "ko": "음~, 샤워, 샤워를 했어요."}, {"s": 243, "e": 246, "ja": "{もちろん|勿論}、[歯|は]も{みがきました|磨きました}。", "ko": "물론 이도 닦았어요."}, {"s": 247, "e": 251, "ja": "そして、{だいたい|大体}[夜|よる]の[11時|じゅういちじ]{くらい|ぐらい/位}に", "ko": "그리고 대략 밤 11시쯤"}, {"s": 251, "e": 256, "ja": "ベッドに[入|はい]って{ケータイ|携帯}を[見|み]ていました。", "ko": "침대에 들어가서 휴대폰을 봤어요."}, {"s": 256, "e": 259, "ja": "[1時間|いちじかん]{くらい|ぐらい/位}[見|み]ていたかな。[Netflix|ねっとふりっくす]とか、", "ko": "1시간 정도 봤나. 넷플릭스라든지"}, {"s": 259, "e": 264, "ja": "インスタとかニュースとか[YouTube|ゆーちゅーぶ]とか。", "ko": "인스타, 뉴스, 유튜브 같은 거요."}, {"s": 264, "e": 269, "ja": "そして、[夜|よる]の[12時|じゅうにじ]から[1時|いちじ]{くらい|ぐらい/位}の[間|あいだ]に[寝|ね]ました。", "ko": "그리고 밤 12시에서 1시 사이에 잤어요."}, {"s": 269, "e": 271, "ja": "[以上|いじょう]です！", "ko": "이상이에요!"}, {"s": 271, "e": 273, "ja": "{みなさん|皆さん}、[聞|き]き[取|と]れましたか？", "ko": "여러분, 알아들으셨어요?"}, {"s": 273, "e": 275, "ja": "{どれくらい|どれぐらい}{わかりました|分かりました}か？", "ko": "얼마나 이해했어요?"}, {"s": 275, "e": 278, "ja": "[全部|ぜんぶ]{わかったら|分かったら}{すごい|凄い}です！", "ko": "다 알아들었다면 대단한 거예요!"}];
+const LS = 'shadow_JYEutL_zQQc_v1';
+const store = JSON.parse(localStorage.getItem(LS) || '{"best":{},"adj":{},"idx":0}');
+const save = () => localStorage.setItem(LS, JSON.stringify(store));
+let idx = Math.min(store.idx || 0, S.length - 1);
+let rate = 1, loop = false, hideText = false, showKo = false, weakOnly = false;
+let player = null, ready = false, watch = null, segEndCb = null, loopCount = 0;
+let mediaStream = null, recorder = null, chunks = [], myUrl = null, recognizer = null, heardFinal = '', heardInterim = '', recording = false, recTimer = null;
+const $ = id => document.getElementById(id);
+if (location.protocol === 'file:') $('fileBanner').style.display = 'block';
+
+// ---------- YouTube ----------
+const tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(tag);
+window.onYouTubeIframeAPIReady = () => {
+  player = new YT.Player('yt', { videoId: VIDEO_ID, playerVars: { playsinline: 1, rel: 0, hl: 'ja', cc_load_policy: 0, modestbranding: 1 },
+    events: { onReady: () => { ready = true; status('준비 완료. Space로 첫 문장을 들어보세요.'); }, onStateChange: e => { if (e.data === 1) try { player.unloadModule('captions'); } catch (_) {} } } });
+};
+const segOf = i => { const a = store.adj[i] || { s: 0, e: 0 }; return { s: Math.max(0, S[i].s + a.s - 0.15), e: S[i].e + a.e + 0.25 }; };
+function playSeg(i, onEnd) {
+  if (!ready) { status('플레이어 로딩 중...'); return; }
+  const g = segOf(i); clearInterval(watch); segEndCb = onEnd || null;
+  player.setPlaybackRate(rate); player.seekTo(g.s, true); player.playVideo();
+  let started = false, t0 = Date.now();
+  watch = setInterval(() => {
+    const t = player.getCurrentTime();
+    if (!started) { if (t >= g.s - 0.6 && t < g.e) started = true; else { if (Date.now() - t0 > 2500) { t0 = Date.now(); player.seekTo(g.s, true); player.playVideo(); } return; } }
+    if (t >= g.e || t < g.s - 1.5) {
+      clearInterval(watch); player.pauseVideo();
+      const cb = segEndCb; segEndCb = null;
+      if (cb) cb();
+      else if (loop) { loopCount++; status('반복 ' + loopCount + '회'); setTimeout(() => { if (loop) playSeg(idx); }, 900); }
+    }
+  }, 40);
+}
+function stopAll() { clearInterval(watch); segEndCb = null; if (ready) player.pauseVideo(); }
+
+// ---------- Render (Japanese) ----------
+const PUNCT = /[\s、。！？!?,.…・「」『』（）()〜~ー－\-]/;
+const hira = s => s.replace(/[\u30a1-\u30f6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+const KNUM = ['〇','一','二','三','四','五','六','七','八','九','十','十一','十二'];
+const normJ = s => hira(String(s).normalize('NFKC').toLowerCase()).replace(/[\s、。！？!?,.…・「」『』（）()〜~\-]/g, '');
+function parseUnits(src) {
+  const out = []; const re = /\[([^|\]]+)\|([^\]]+)\]|\{([^|}]+)\|([^}]+)\}|\(([^)]*)\)|([\s\S])/g; let m;
+  while ((m = re.exec(src))) {
+    if (m[1]) { const forms = [m[1], m[2]]; if (/\d/.test(m[1])) forms.push(m[1].replace(/\d+/g, d => KNUM[+d] || d)); out.push({ kind: 'ruby', disp: m[1], rt: m[2], forms, w: normJ(m[2]).length }); }
+    else if (m[3]) out.push({ kind: 'alt', disp: m[3], forms: [m[3], ...m[4].split('/')], w: normJ(m[3]).length });
+    else if (m[5] !== undefined) out.push({ kind: 'opt', disp: '(' + m[5] + ')', forms: [m[5]], w: 0 });
+    else { const c = m[6]; const p = PUNCT.test(c) && c !== 'ー'; out.push({ kind: p ? 'punct' : 'char', disp: c, forms: p ? [] : [c], w: p ? 0 : 1 }); }
+  }
+  out.forEach(u => u.nf = u.forms.map(normJ).filter(Boolean));
+  return out;
+}
+const UNITS = S.map(s => parseUnits(s.ja));
+const plainText = i => UNITS[i].map(u => u.kind === 'opt' ? u.disp.slice(1, -1) : u.disp).join('');
+const readingText = i => UNITS[i].map(u => u.kind === 'ruby' ? u.rt : u.kind === 'opt' ? '' : u.disp).join('');
+let lastMarks = null, showFuri = true;
+function runAround(units, k) { let a = k, b = k; while (a > 0 && units[a - 1].kind === 'char') a--; while (b < units.length - 1 && units[b + 1].kind === 'char') b++; return units.slice(a, b + 1).map(u => u.disp).join(''); }
+function renderSentence(marks) {
+  if (marks === undefined) marks = lastMarks; else lastMarks = marks;
+  const el = $('sent'); el.innerHTML = ''; el.classList.toggle('nofuri', !showFuri);
+  const units = UNITS[idx];
+  units.forEach((u, k) => {
+    let node;
+    if (u.kind === 'ruby') { node = document.createElement('ruby'); node.appendChild(document.createTextNode(u.disp)); const rt = document.createElement('rt'); rt.textContent = u.rt; node.appendChild(rt); }
+    else { node = document.createElement('span'); node.textContent = u.disp; }
+    node.classList.add('w'); if (u.kind === 'opt') node.classList.add('opt'); if (u.kind === 'punct') node.classList.add('p');
+    if (marks && u.w > 0) node.classList.add(marks[k] ? 'ok' : 'miss');
+    if (u.kind !== 'punct') node.onclick = () => speakJa(u.kind === 'char' ? runAround(units, k) : u.kind === 'ruby' ? u.rt : u.disp);
+    el.appendChild(node);
+  });
+  el.classList.toggle('hidden', hideText && !marks);
+  $('ko').textContent = S[idx].ko || ''; $('ko').classList.toggle('hidden', !showKo);
+  const g = segOf(idx); $('curMeta').textContent = '#' + (idx + 1) + ' / ' + S.length + '  ·  ' + fmt(g.s) + ' - ' + fmt(g.e) + ((store.best[idx] != null) ? '  ·  최고 ' + store.best[idx] + '점' : '');
+}
+const fmt = t => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
+const cls = v => v >= 80 ? 'good' : v >= 55 ? 'mid' : 'low';
+function renderList() {
+  const q = $('q').value.trim(); const L = $('list'); L.innerHTML = '';
+  S.forEach((s, i) => {
+    const b = store.best[i];
+    if (q && !(plainText(i).includes(q) || readingText(i).includes(q) || (s.ko || '').includes(q))) return;
+    if (weakOnly && !(b != null && b < 80)) return;
+    const d = document.createElement('div'); d.className = 'item' + (i === idx ? ' cur' : ''); d.dataset.i = i;
+    d.innerHTML = '<div class="n">' + (i + 1) + '<div class="t">' + fmt(s.s) + '</div></div><div></div>' + '<div>' + (b != null ? '<div class="badge ' + cls(b) + '">' + b + '</div>' : '') + '</div>';
+    d.children[1].textContent = plainText(i); d.onclick = () => select(i, true); L.appendChild(d);
+  });
+  const vals = Object.values(store.best);
+  $('stTotal').textContent = S.length; $('stDone').textContent = vals.length; $('stGood').textContent = vals.filter(v => v >= 80).length;
+  $('stAvg').textContent = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : '-';
+}
+function select(i, play) {
+  if (recording) stopRec();
+  idx = Math.max(0, Math.min(S.length - 1, i)); store.idx = idx; save(); loopCount = 0;
+  myUrl = null; lastMarks = null; $('bMine').disabled = true; $('bCmp').disabled = true; $('result').classList.remove('show');
+  renderSentence(null); renderList();
+  const cur = document.querySelector('.item.cur'); if (cur) cur.scrollIntoView({ block: 'nearest' });
+  if (play) playSeg(idx);
+}
+function status(t) { $('status').textContent = t; }
+
+// ---------- TTS ----------
+function speakJa(w) {
+  const u = new SpeechSynthesisUtterance(w); u.lang = 'ja-JP'; u.rate = 0.85;
+  const v = speechSynthesis.getVoices().find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP'); if (v) u.voice = v;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+// ---------- Recording + Recognition ----------
+async function ensureMic() {
+  if (mediaStream) return mediaStream;
+  mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  return mediaStream;
+}
+let starting = false;
+async function startRec(withOriginal) {
+  if (starting) return; starting = true;
+  if (!mediaStream) status('브라우저 상단의 마이크 권한 요청에서 "허용"을 눌러주세요...');
+  try { await ensureMic(); } catch (e) { starting = false; status('마이크 권한이 필요해요. 주소창의 마이크 아이콘에서 허용해 주세요.'); return; }
+  starting = false;
+  stopAll(); chunks = []; heardFinal = ''; heardInterim = ''; gradedFor = null; renderSentence(null);
+  recorder = new MediaRecorder(mediaStream);
+  recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+  recorder.onstop = () => { myUrl = URL.createObjectURL(new Blob(chunks, { type: recorder.mimeType })); $('bMine').disabled = false; $('bCmp').disabled = false; };
+  recorder.start();
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) {
+    recognizer = new SR(); recognizer.lang = 'ja-JP'; recognizer.continuous = true; recognizer.interimResults = true; recognizer.maxAlternatives = 1;
+    recognizer.onresult = e => { heardInterim = ''; for (let k = e.resultIndex; k < e.results.length; k++) { if (e.results[k].isFinal) heardFinal += ' ' + e.results[k][0].transcript; else heardInterim += ' ' + e.results[k][0].transcript; } $('heard').textContent = '인식 중: ' + (heardFinal + heardInterim).trim(); $('result').classList.add('show'); };
+    recognizer.onerror = e => { if (e.error !== 'no-speech' && e.error !== 'aborted') status('음성 인식 오류: ' + e.error); };
+    try { recognizer.start(); } catch (_) {}
+  } else status('이 브라우저는 음성 인식을 지원하지 않아요(Chrome 권장). 녹음·비교는 가능해요.');
+  recording = true; $('bRec').classList.add('on'); $('bRec').innerHTML = '■ 녹음 정지 <kbd>R</kbd>';
+  $('score').textContent = '...'; $('score').className = 'score'; $('scoreNote').textContent = ''; $('heard').textContent = '말해보세요...'; $('result').classList.add('show');
+  const dur = (segOf(idx).e - segOf(idx).s) / rate;
+  if (withOriginal) { status('쉐도잉 중: 원문과 겹쳐서 말하세요.'); playSeg(idx, () => setTimeout(stopRec, 900)); }
+  else { status('녹음 중... 끝나면 R'); clearTimeout(recTimer); recTimer = setTimeout(() => recording && stopRec(), dur * 2.5 * 1000 + 4000); }
+}
+function stopRec() {
+  if (!recording) return; recording = false; clearTimeout(recTimer);
+  $('bRec').classList.remove('on'); $('bRec').innerHTML = '● 따라 말하기 녹음 <kbd>R</kbd>';
+  try { recorder && recorder.state !== 'inactive' && recorder.stop(); } catch (_) {}
+  if (recognizer) { const r = recognizer; recognizer = null; r.onend = () => grade(); try { r.stop(); } catch (_) { grade(); } setTimeout(() => grade(), 1800); }
+  else { $('score').textContent = '-'; status('녹음 완료. P로 들어보세요.'); }
+}
+let gradedFor = null;
+function alignJa(units, R) {
+  const n = units.length, m = R.length; const best = Array.from({ length: n + 1 }, () => new Float64Array(m + 1)); const ch = Array.from({ length: n + 1 }, () => new Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m; j >= 0; j--) {
+    let v = best[i + 1][j], c = ['skipU'];
+    if (j < m && best[i][j + 1] > v) { v = best[i][j + 1]; c = ['skipR']; }
+    if (units[i].w > 0 || units[i].kind === 'opt') for (const f of units[i].nf) if (f && R.startsWith(f, j)) { const val = units[i].w + best[i + 1][j + f.length] + 0.001; if (val > v) { v = val; c = ['match', f.length]; } }
+    best[i][j] = v; ch[i][j] = c;
+  }
+  const marks = new Array(n).fill(false); let i = 0, j = 0;
+  while (i < n) { const c = ch[i][j]; if (!c) break; if (c[0] === 'match') { marks[i] = true; j += c[1]; i++; } else if (c[0] === 'skipR') j++; else i++; }
+  return marks;
+}
+function grade() {
+  const heard = (heardFinal + ' ' + heardInterim).trim();
+  const key = idx + '|' + heard; if (gradedFor === key) return; gradedFor = key;
+  const units = UNITS[idx]; const R = normJ(heard);
+  const marks = alignJa(units, R);
+  const total = units.reduce((a, u) => a + u.w, 0) || 1; const hit = units.reduce((a, u, k) => a + (marks[k] ? u.w : 0), 0);
+  const sc = Math.round(hit / total * 100);
+  $('score').textContent = R.length ? sc + '점' : '0점'; $('score').className = 'score ' + cls(sc);
+  $('scoreNote').textContent = R.length ? (sc >= 80 ? '좋아요! 이제 C로 억양·리듬을 맞춰보세요.' : sc >= 55 ? '빨간 부분을 클릭해 듣고 다시 해보세요.' : '0.75x로 낮춰 2~3번 더 듣고 다시 해보세요.') : '소리가 인식되지 않았어요. 마이크를 확인해 주세요.';
+  $('heard').textContent = '내 발음 인식: ' + (heard || '(없음)');
+  $('result').classList.add('show');
+  renderSentence(marks);
+  if (R.length) { store.best[idx] = Math.max(store.best[idx] ?? 0, sc); save(); renderList(); renderSentence(marks); }
+  status('채점 완료. P 내 목소리 / C 원문 → 나 비교');
+}
+let myAudio = null;
+function playMine(onEnd) { if (!myUrl) return; stopAll(); myAudio && myAudio.pause(); myAudio = new Audio(myUrl); myAudio.onended = () => onEnd && onEnd(); myAudio.play(); status('내 목소리 재생 중'); }
+function compare() { if (!myUrl) return; status('원문 재생 → 이어서 내 목소리'); playSeg(idx, () => setTimeout(() => playMine(() => status('비교 끝. 다르게 들린 부분을 다시 따라 해보세요.')), 500)); }
+
+// ---------- Controls ----------
+$('bPlay').onclick = () => { loopCount = 0; playSeg(idx); };
+$('bLoop').onclick = () => { loop = !loop; $('bLoop').classList.toggle('on', loop); loopCount = 0; if (loop) playSeg(idx); else stopAll(); };
+document.querySelectorAll('#speed button').forEach(b => b.onclick = () => { rate = +b.dataset.r; document.querySelectorAll('#speed button').forEach(x => x.classList.toggle('sel', x === b)); if (ready) player.setPlaybackRate(rate); });
+$('bHide').onclick = () => { hideText = !hideText; $('bHide').classList.toggle('on', hideText); document.querySelector('.player').classList.toggle('blur', hideText); renderSentence(); };
+$('bKo').onclick = () => { showKo = !showKo; $('bKo').classList.toggle('on', showKo); renderSentence(); };
+$('bRec').onclick = () => recording ? stopRec() : startRec(false);
+$('bShadow').onclick = () => recording ? stopRec() : startRec(true);
+$('bMine').onclick = () => playMine();
+$('bCmp').onclick = compare;
+$('bPrev').onclick = () => select(idx - 1, true);
+$('bNext').onclick = () => select(idx + 1, true);
+$('q').oninput = renderList;
+$('bFuri').onclick = () => { showFuri = !showFuri; $('bFuri').classList.toggle('on', showFuri); renderSentence(); };
+$('fWeak').onclick = () => { weakOnly = !weakOnly; $('fWeak').classList.toggle('on', weakOnly); renderList(); };
+document.querySelectorAll('.nudge button').forEach(b => b.onclick = () => { const [k, v] = b.dataset.n.split(','); const a = store.adj[idx] || { s: 0, e: 0 }; a[k] = Math.round((a[k] + +v) * 10) / 10; store.adj[idx] = a; save(); renderSentence(); playSeg(idx); });
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return; const k = e.key.toLowerCase();
+  if (e.code === 'Space') { e.preventDefault(); $('bPlay').click(); }
+  else if (k === 'arrowright') $('bNext').click(); else if (k === 'arrowleft') $('bPrev').click();
+  else if (k === 'f') $('bFuri').click(); else if (k === 'l') $('bLoop').click(); else if (k === 'h') $('bHide').click(); else if (k === 'k') $('bKo').click();
+  else if (k === 'r') $('bRec').click(); else if (k === 's') $('bShadow').click(); else if (k === 'p') $('bMine').click(); else if (k === 'c') $('bCmp').click();
+  else if (k === '1') document.querySelector('#speed [data-r="0.5"]').click(); else if (k === '2') document.querySelector('#speed [data-r="0.75"]').click(); else if (k === '3') document.querySelector('#speed [data-r="1"]').click();
+});
+select(idx, false);
+</script>
+</body>
+</html>
