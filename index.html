@@ -147,7 +147,7 @@ const store = JSON.parse(localStorage.getItem(LS) || '{"best":{},"adj":{},"idx":
 const save = () => localStorage.setItem(LS, JSON.stringify(store));
 let idx = Math.min(store.idx || 0, S.length - 1);
 let rate = 1, loop = false, hideText = false, showKo = false, weakOnly = false;
-let player = null, ready = false, watch = null, segEndCb = null, loopCount = 0;
+let adShown = false, player = null, ready = false, watch = null, segEndCb = null, loopCount = 0;
 let mediaStream = null, recorder = null, chunks = [], myUrl = null, recognizer = null, heardFinal = '', heardInterim = '', recording = false, recTimer = null;
 const $ = id => document.getElementById(id);
 if (location.protocol === 'file:') $('fileBanner').style.display = 'block';
@@ -166,7 +166,16 @@ function playSeg(i, onEnd) {
   let started = false, t0 = Date.now();
   watch = setInterval(() => {
     const t = player.getCurrentTime();
-    if (!started) { if (t >= g.s - 0.6 && t < g.e) started = true; else { if (Date.now() - t0 > 2500) { t0 = Date.now(); player.seekTo(g.s, true); player.playVideo(); } return; } }
+    if (!started) {
+      const st = player.getPlayerState();
+      if (st === 1 && t >= g.s - 0.6 && t < g.e) { started = true; if (adShown) { adShown = false; status(''); } }
+      else {
+        if (st === -1 && Date.now() - t0 > 1500) { adShown = true; status('YouTube 광고 재생 중이에요. 광고가 끝나면 자동으로 문장을 재생해요.'); t0 = Date.now(); }
+        else if (st === 1 && Date.now() - t0 > 700) { t0 = Date.now(); player.seekTo(g.s, true); }
+        else if ((st === 2 || st === 5) && Date.now() - t0 > 1500) { t0 = Date.now(); player.seekTo(g.s, true); player.playVideo(); }
+        return;
+      }
+    }
     if (t >= g.e || t < g.s - 1.5) {
       clearInterval(watch); player.pauseVideo();
       const cb = segEndCb; segEndCb = null;
