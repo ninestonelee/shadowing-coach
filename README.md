@@ -1,11 +1,10 @@
 # Shadowing Coach (Katie Dill, Stripe 강연)
 
-## 실행
-1. 이 폴더의 `start.command`를 더블클릭 (처음엔 우클릭 → 열기)
-2. 브라우저에서 http://localhost:8777 이 열림 (Chrome 권장)
-3. 첫 녹음 때 마이크 권한 "허용"
+## 바로 사용
+https://ninestonelee.github.io/shadowing-coach/  (Chrome 권장, 첫 녹음 때 마이크 "허용")
 
-> index.html을 직접 더블클릭(file://)하면 YouTube 임베드와 마이크가 막힐 수 있어요.
+로컬에서 쓰려면 이 폴더에서 `python3 -m http.server 8777` 후 http://localhost:8777 접속
+(index.html을 직접 더블클릭(file://)하면 YouTube 임베드와 마이크가 막힐 수 있어요.)
 
 ## 연습 루틴 (문장 1개당 2~3분)
 1. H: 문장 숨기고 듣기 → 2. L: 보면서 3번 반복 (어려우면 2키=0.75x)
