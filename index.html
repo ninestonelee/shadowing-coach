@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shadowing Coach · Katie Dill (Stripe)</title>
+<style>
+  :root{--bg:#f6f7f9;--card:#fff;--ink:#1d2433;--sub:#6b7385;--line:#e4e7ee;--acc:#635bff;--acc2:#eceaff;--ok:#16a34a;--okbg:#e8f7ee;--bad:#dc2626;--badbg:#fdecec;--warn:#d97706}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  header h1{font-size:17px;margin:0;font-weight:700}
+  header h1 span{color:var(--sub);font-weight:500;font-size:13px;margin-left:8px}
+  .stats{display:flex;gap:14px;font-size:13px;color:var(--sub)}
+  .stats b{color:var(--ink)}
+  .wrap{display:grid;grid-template-columns:minmax(420px,1.15fr) minmax(320px,.85fr);gap:18px;padding:18px 22px;max-width:1400px;margin:0 auto}
+  @media (max-width:900px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .player{aspect-ratio:16/9;width:100%;border-radius:10px;overflow:hidden;background:#000}
+  .player iframe{width:100%;height:100%}
+  .left{display:flex;flex-direction:column;gap:14px}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .step{font-size:12px;padding:5px 10px;border-radius:999px;background:#f1f2f6;color:var(--sub);border:1px solid transparent}
+  .step b{color:var(--acc)}
+  .meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--sub);margin-bottom:8px}
+  .sent{font-size:24px;line-height:1.55;font-weight:600;letter-spacing:-.1px;min-height:74px}
+  .sent .w{cursor:pointer;border-radius:5px;padding:0 2px}
+  .sent .w:hover{background:var(--acc2)}
+  .sent .w.ok{color:var(--ok)}
+  .sent .w.miss{color:var(--bad);text-decoration:underline wavy;text-underline-offset:5px}
+  .sent.hidden .w{color:transparent!important;background:#eceef3;text-decoration:none}
+  .ko{font-size:15px;color:var(--sub);margin-top:8px;min-height:22px}
+  .ko.hidden{visibility:hidden}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+  button{font:inherit;font-size:14px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 13px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  button:hover{border-color:#c9cde0}
+  button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+  button.rec{background:#fff1f1;border-color:#f3c2c2;color:var(--bad)}
+  button.rec.on{background:var(--bad);color:#fff;border-color:var(--bad);animation:pulse 1.2s infinite}
+  button.on{background:var(--acc2);border-color:var(--acc);color:var(--acc)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  @keyframes pulse{50%{opacity:.7}}
+  kbd{font-size:11px;border:1px solid currentColor;border-radius:4px;padding:0 4px;opacity:.6;font-family:inherit}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{border:0;border-radius:0;padding:8px 11px}
+  .seg button+button{border-left:1px solid var(--line)}
+  .seg button.sel{background:var(--ink);color:#fff}
+  .small{font-size:12px;color:var(--sub)}
+  .result{margin-top:14px;padding:12px 14px;border-radius:12px;background:#f8f9fb;border:1px dashed var(--line);display:none}
+  .result.show{display:block}
+  .score{font-size:28px;font-weight:800}
+  .score.good{color:var(--ok)} .score.mid{color:var(--warn)} .score.low{color:var(--bad)}
+  .heard{font-size:14px;color:var(--sub);margin-top:4px}
+  .tips{font-size:13px;color:var(--sub);line-height:1.6;margin:0;padding-left:18px}
+  .list{max-height:calc(100vh - 110px);overflow:auto;padding:6px}
+  .item{display:grid;grid-template-columns:38px 1fr 44px;gap:8px;padding:9px 10px;border-radius:10px;cursor:pointer;align-items:start;font-size:14px;line-height:1.45}
+  .item:hover{background:#f3f4f8}
+  .item.cur{background:var(--acc2);outline:1px solid #cfcaff}
+  .item .n{color:var(--sub);font-size:12px;padding-top:2px}
+  .item .t{font-size:11px;color:var(--sub)}
+  .badge{font-size:12px;font-weight:700;text-align:center;border-radius:8px;padding:2px 0}
+  .badge.good{background:var(--okbg);color:var(--ok)} .badge.mid{background:#fff4e0;color:var(--warn)} .badge.low{background:var(--badbg);color:var(--bad)}
+  .filters{display:flex;gap:6px;padding:4px 6px 10px;border-bottom:1px solid var(--line);margin-bottom:6px;align-items:center}
+  .filters input{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px}
+  .banner{background:#fff7e6;border:1px solid #f5d38f;color:#7a4b00;padding:12px 16px;border-radius:12px;margin:14px 22px 0;font-size:14px;display:none}
+  .nudge{display:flex;gap:4px;align-items:center}
+  .nudge button{padding:4px 8px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Shadowing Coach <span>Katie Dill · How to scale intent, quality, and artistry with AI</span></h1>
+  <div class="stats">
+    <div>연습한 문장 <b id="stDone">0</b>/<b id="stTotal">0</b></div>
+    <div>80점 이상 <b id="stGood">0</b></div>
+    <div>평균 <b id="stAvg">-</b></div>
+  </div>
+</header>
+<div class="banner" id="fileBanner">
+  이 파일을 더블클릭(file://)으로 열면 YouTube 영상과 마이크가 막힐 수 있어요. 같은 폴더의 <b>start.command</b>를 실행하거나, 터미널에서 <code>python3 -m http.server 8777</code> 후 <b>http://localhost:8777</b> 로 열어주세요.
+</div>
+<div class="wrap">
+  <div class="left">
+    <div class="card">
+      <div class="player"><div id="yt"></div></div>
+      <div class="small" style="margin-top:8px">원본 영어 음성(English original)으로 재생됩니다. 자동 더빙이 들리면 플레이어 톱니바퀴 → Audio Track → English (US) original 을 선택하세요.</div>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step"><b>1</b> 눈 감고 듣기 (H로 문장 숨김)</div>
+        <div class="step"><b>2</b> 보면서 3번 반복 (L)</div>
+        <div class="step"><b>3</b> 녹음 후 원문과 비교 (R → C)</div>
+        <div class="step"><b>4</b> 겹쳐 말하기 쉐도잉 (S)</div>
+      </div>
+      <div class="meta"><span id="curMeta">#1</span>
+        <span class="nudge">구간 보정 시작 <button data-n="s,-0.3">-</button><button data-n="s,0.3">+</button> 끝 <button data-n="e,-0.3">-</button><button data-n="e,0.3">+</button></span></div>
+      <div class="sent" id="sent"></div>
+      <div class="ko" id="ko"></div>
+      <div class="row">
+        <button class="primary" id="bPlay">▶ 원문 듣기 <kbd>Space</kbd></button>
+        <button id="bLoop">↻ 반복 <kbd>L</kbd></button>
+        <div class="seg" id="speed">
+          <button data-r="0.5">0.5x</button><button data-r="0.75">0.75x</button><button data-r="1" class="sel">1x</button>
+        </div>
+        <button id="bHide">문장 숨기기 <kbd>H</kbd></button>
+        <button id="bKo">한국어 뜻 <kbd>K</kbd></button>
+      </div>
+      <div class="row">
+        <button class="rec" id="bRec">● 따라 말하기 녹음 <kbd>R</kbd></button>
+        <button id="bShadow">◎ 쉐도잉 (원문+녹음 동시) <kbd>S</kbd></button>
+        <button id="bMine" disabled>▶ 내 목소리 <kbd>P</kbd></button>
+        <button id="bCmp" disabled>⇄ 원문 → 나 비교 <kbd>C</kbd></button>
+      </div>
+      <div class="row">
+        <button id="bPrev">← 이전</button>
+        <button id="bNext">다음 →</button>
+        <span class="small" id="status"></span>
+      </div>
+      <div class="result" id="result">
+        <div style="display:flex;align-items:baseline;gap:12px"><div class="score" id="score">-</div><div class="small" id="scoreNote"></div></div>
+        <div class="heard" id="heard"></div>
+      </div>
+    </div>
+    <div class="card">
+      <ul class="tips">
+        <li>단어를 클릭하면 원어민 TTS로 그 단어만 천천히 들려줘요(참고용). 정답 기준은 항상 연사 원음이에요.</li>
+        <li>점수는 음성 인식이 내 발음을 몇 단어나 알아들었는지(명료도)예요. 빨간 물결 단어가 집중 연습 대상이에요.</li>
+        <li>쉐도잉은 이어폰을 끼고 하세요. 스피커로 들으면 원문 소리가 녹음에 섞여 점수가 부풀어요.</li>
+        <li>억양·강세·끊어 읽기는 점수로 안 잡혀요. 반드시 C(원문 → 나 비교)로 귀로 맞춰보세요.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="padding:10px">
+    <div class="filters">
+      <input id="q" placeholder="문장 검색 (영어/한국어)">
+      <button id="fWeak" title="80점 미만 연습 문장만">약한 문장</button>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+<script>
+const VIDEO_ID = 'GLvFTMtw4Jk';
+const S = [{"s": 6, "e": 14.46, "en": "Good morning. Right after World War II, there was a massive building boom, the largest in history.", "ko": "좋은 아침입니다. 2차 세계대전 직후, 역사상 가장 큰 건설 붐이 일었습니다."}, {"s": 14.46, "e": 17, "en": "In the US, people were coming home from war.", "ko": "미국에서는 사람들이 전쟁에서 돌아오고 있었죠."}, {"s": 17, "e": 24.46, "en": "There were new technologies, new construction methods, and buildings were going up like gangbusters.", "ko": "새로운 기술과 새로운 공법이 있었고, 건물들이 무서운 기세로 올라갔습니다."}, {"s": 24.46, "e": 30, "en": "The builders of that day drew on the style of modernism from the 1920s.", "ko": "당시 건축가들은 1920년대 모더니즘 양식을 끌어다 썼습니다."}, {"s": 30, "e": 38.27, "en": "That's really simple geometries, clean, bare surfaces, monochromatic color palettes, and no adornment.", "ko": "아주 단순한 기하학, 깔끔하고 꾸밈없는 표면, 단색 팔레트, 장식 없음이죠."}, {"s": 38.27, "e": 45, "en": "Now, say what you will about modernism, but the founders behind the movement had intentionality.", "ko": "모더니즘을 어떻게 평가하든, 그 운동의 창시자들에게는 의도가 있었습니다."}, {"s": 45, "e": 48.17, "en": "There was a point of view behind the Villa Savoye.", "ko": "빌라 사보아에는 관점이 있었습니다."}, {"s": 48.17, "e": 51.74, "en": "There were principles behind the Bauhaus.", "ko": "바우하우스에는 원칙이 있었습니다."}, {"s": 51.74, "e": 64, "en": "But after World War II, with urgency to build and new construction methods, the style was essentially copied again and again without intentionality.", "ko": "하지만 2차 대전 이후, 빨리 지어야 한다는 압박과 새 공법 속에서 그 양식은 의도 없이 계속 복제되었습니다."}, {"s": 64, "e": 71.59, "en": "The thinking got thinner and thinner, and all that was left were generic patterns ill-suited to the context at hand.", "ko": "생각은 점점 얕아졌고, 남은 건 눈앞의 맥락에 맞지 않는 뻔한 패턴뿐이었습니다."}, {"s": 71.59, "e": 80, "en": "For example, we used to have banks that looked like this, signaling trust, reliability, and security.", "ko": "예를 들어, 예전 은행은 이렇게 생겨서 신뢰, 안정성, 보안을 드러냈습니다."}, {"s": 80, "e": 84, "en": "And then we got this.", "ko": "그런데 그다음엔 이런 게 나왔죠."}, {"s": 84, "e": 90.34, "en": "You're all too familiar with this reality because it carried on for decades until this day.", "ko": "여러분도 이 현실이 너무 익숙할 겁니다. 수십 년 동안 오늘날까지 이어졌으니까요."}, {"s": 90.34, "e": 93.43, "en": "Zombie buildings all over the place.", "ko": "사방에 좀비 건물들이죠."}, {"s": 93.43, "e": 98.6, "en": "Nothing differentiates them. Nothing says this is intentional.", "ko": "서로 구별되는 게 없습니다. 의도했다고 말해주는 것도 없죠."}, {"s": 98.6, "e": 101, "en": "This is fit to purpose.", "ko": "용도에 맞게 지었다는 것도요."}, {"s": 101, "e": 104.84, "en": "They essentially show no care for the user and the habitants around it.", "ko": "사용자와 주변 거주자에 대한 배려가 사실상 없습니다."}, {"s": 104.84, "e": 107.38, "en": "No care for context or the brand.", "ko": "맥락이나 브랜드에 대한 배려도 없고요."}, {"s": 107.38, "e": 108.9, "en": "I think about this a lot.", "ko": "저는 이걸 많이 생각합니다."}, {"s": 108.9, "e": 110.77, "en": "One, we're surrounded by them.", "ko": "첫째, 우리가 그것들에 둘러싸여 있으니까요."}, {"s": 110.77, "e": 115.32, "en": "And two, we're in another building boom now.", "ko": "둘째, 우리는 지금 또 다른 건설 붐 속에 있습니다."}, {"s": 115.32, "e": 118, "en": "The AI building boom.", "ko": "바로 AI 건설 붐이죠."}, {"s": 118, "e": 120.37, "en": "Everybody and their mother can build now.", "ko": "이제 너나 할 것 없이 누구나 만들 수 있습니다."}, {"s": 120.37, "e": 124.37, "en": "Teams of three can do what teams of 30 used to be needed for.", "ko": "예전엔 30명이 필요하던 일을 이제 3명이 해냅니다."}, {"s": 124.37, "e": 128, "en": "But there's echoes of the post-war building boom.", "ko": "그런데 전후 건설 붐의 메아리가 들립니다."}, {"s": 128, "e": 130.75, "en": "Similarities that are actually watch points for us.", "ko": "우리가 실제로 경계해야 할 유사점들이죠."}, {"s": 130.75, "e": 137, "en": "I want to tell you about these watch points and then we'll talk about how we can navigate them together.", "ko": "이 경계 포인트들을 말씀드리고, 그다음에 함께 어떻게 헤쳐갈지 이야기해 보겠습니다."}, {"s": 137, "e": 143.92, "en": "First, LLMs are really good at telling you the most probable answer, which essentially means", "ko": "첫째, LLM은 가장 그럴듯한 답을 알려주는 데 아주 능숙합니다. 이는 본질적으로"}, {"s": 143.92, "e": 151, "en": "that they're able to tell you what has been or is popular now, what has worked, what was in style.", "ko": "과거에 인기 있었거나 지금 인기 있는 것, 효과가 있었던 것, 유행했던 것을 알려줄 수 있다는 뜻입니다."}, {"s": 151, "e": 157.17, "en": "They're less good at telling you what's original or specific to you, your brand, and your users context.", "ko": "반면 독창적인 것, 혹은 여러분과 여러분의 브랜드, 사용자의 맥락에 특화된 것을 알려주는 데는 약합니다."}, {"s": 157.17, "e": 158.69, "en": "I'll give you an example.", "ko": "예를 하나 들어볼게요."}, {"s": 158.69, "e": 162, "en": "Can you guess what this brand sells?", "ko": "이 브랜드가 뭘 파는지 맞혀보시겠어요?"}, {"s": 162, "e": 167, "en": "Software? No. Korean barbecue.", "ko": "소프트웨어요? 아니요. 한국식 바비큐입니다."}, {"s": 167, "e": 173.44, "en": "Now this is, I'm sure, a very fine website, but it has no character, no context for the user", "ko": "분명 아주 괜찮은 웹사이트겠지만, 개성도 없고 사용자에 대한 맥락도 없습니다."}, {"s": 173.44, "e": 178.95, "en": "or the context of the use, which brings me to my second point: the temptation of done.", "ko": "사용 맥락도 없죠. 그래서 두 번째 포인트로 넘어갑니다. 바로 '완성'의 유혹입니다."}, {"s": 178.95, "e": 185.58, "en": "AI makes things feel finished really really fast all too often prematurely.", "ko": "AI는 결과물을 정말 순식간에 완성된 것처럼 느끼게 만듭니다. 너무 자주, 너무 이르게요."}, {"s": 185.58, "e": 189, "en": "I'll give you an example that I probably shouldn't admit.", "ko": "고백하기 좀 민망한 예를 하나 들어볼게요."}, {"s": 189, "e": 192.58, "en": "I have a microwave burrito for lunch all too often.", "ko": "저는 점심으로 전자레인지 부리토를 너무 자주 먹습니다."}, {"s": 192.58, "e": 198.53, "en": "I take the cold, hard rock out of the freezer, plop it on the plate, put it in the microwave.", "ko": "냉동실에서 차갑고 딱딱한 돌덩이를 꺼내 접시에 툭 올리고 전자레인지에 넣죠."}, {"s": 198.53, "e": 200.8, "en": "In 90 seconds, I go from hungry to lunch.", "ko": "90초 만에 배고픔에서 점심으로 넘어갑니다."}, {"s": 200.8, "e": 204.7, "en": "I'm willing to overlook some pretty serious flaws.", "ko": "꽤 심각한 결점들도 기꺼이 눈감아 줍니다."}, {"s": 204.7, "e": 211, "en": "It's nearly inedible, but I'm so enamored by the speed of execution.", "ko": "거의 못 먹을 수준인데도, 실행 속도에 완전히 반해 있는 거죠."}, {"s": 211, "e": 212.95, "en": "The same happens with AI.", "ko": "AI도 마찬가지입니다."}, {"s": 212.95, "e": 217.61, "en": "You type in a sentence and boom, you have an interface.", "ko": "문장 하나 입력하면 짠, 인터페이스가 생깁니다."}, {"s": 217.61, "e": 228, "en": "There's some nice little corners and maybe some drop shadows and it's good to be done, but an apparently polished state can often be misleading.", "ko": "모서리도 예쁘게 둥글고 그림자도 좀 있어서 이 정도면 됐다 싶지만, 겉보기에 다듬어진 상태는 종종 착각을 일으킵니다."}, {"s": 228, "e": 229.74, "en": "Does it really solve the problem?", "ko": "정말 문제를 해결하나요?"}, {"s": 229.74, "e": 231.52, "en": "Does it really differentiate?", "ko": "정말 차별화가 되나요?"}, {"s": 231.52, "e": 235.23, "en": "All the questions Claire Vo brought up earlier apply here.", "ko": "앞서 클레어 보가 던진 질문들이 모두 여기에 해당합니다."}, {"s": 235.23, "e": 245.11, "en": "And the third watch point, this work is so easy to do, so quick that it often feels disposable and worst is treated that way.", "ko": "세 번째 경계 포인트는, 이 작업이 너무 쉽고 빨라서 종종 일회용처럼 느껴지고, 더 나쁘게는 실제로 그렇게 취급된다는 겁니다."}, {"s": 245.11, "e": 253.35, "en": "We sometimes let the responsibility of our decisions fall by the wayside and don't really think about the long term, like who's maintaining this.", "ko": "우리는 가끔 결정에 대한 책임을 흐지부지 넘기고, 누가 이걸 유지보수할지 같은 장기적인 부분을 잘 생각하지 않습니다."}, {"s": 253.35, "e": 261.02, "en": "Anyways, all three of these watch points can come together to a world that looks a little like this, an actual place in Turkey.", "ko": "어쨌든 이 세 가지 경계 포인트가 합쳐지면 이런 세상이 될 수 있습니다. 튀르키예에 실제로 있는 곳이에요."}, {"s": 261.02, "e": 267.83, "en": "If we're not careful, our building boom could end up a little too much like the post-war building boom.", "ko": "조심하지 않으면 우리의 건설 붐도 전후 건설 붐과 너무 비슷해질 수 있습니다."}, {"s": 267.83, "e": 272.62, "en": "The proliferation of patterns ill-suited to the context at hand.", "ko": "눈앞의 맥락에 맞지 않는 패턴의 범람이죠."}, {"s": 272.62, "e": 280.28, "en": "Essentially zombie UI. Zombie UI that's monotonous, vacant, or uncared for.", "ko": "본질적으로 좀비 UI입니다. 단조롭고, 공허하고, 돌보지 않은 좀비 UI요."}, {"s": 280.28, "e": 283.62, "en": "We spend half our waking lives looking at screens.", "ko": "우리는 깨어 있는 시간의 절반을 화면을 보며 보냅니다."}, {"s": 283.62, "e": 287.32, "en": "We want software that feels actually cared for.", "ko": "우리는 정말로 정성이 느껴지는 소프트웨어를 원합니다."}, {"s": 287.32, "e": 295.6, "en": "And that means has a little personality as something as simple as the Grockbot and the little animation and life that it brings.", "ko": "그건 약간의 개성이 있다는 뜻이죠. 그록봇처럼 단순한 것, 그리고 그 작은 애니메이션이 주는 생동감처럼요."}, {"s": 295.6, "e": 300.74, "en": "Or even these tiny details like actually having the date in the tab on the calendar.", "ko": "아니면 캘린더 탭에 실제 날짜가 표시되는 것 같은 아주 작은 디테일도요."}, {"s": 300.74, "e": 307.34, "en": "You probably clicked by this all day long, but that shows the builder cared about you.", "ko": "아마 하루 종일 무심코 지나치겠지만, 그건 만든 사람이 여러분을 신경 썼다는 걸 보여줍니다."}, {"s": 307.34, "e": 311.4, "en": "Or the understanding of context like the Link agent wallet.", "ko": "혹은 Link 에이전트 지갑처럼 맥락을 이해하는 것도요."}, {"s": 311.4, "e": 318.23, "en": "It anticipates the issues that the agent could have while buying online and has the troubleshooting built in", "ko": "에이전트가 온라인에서 구매할 때 겪을 수 있는 문제를 예상하고 문제 해결 기능을 내장해 두었습니다."}, {"s": 318.23, "e": 324, "en": "because they anticipate the context of the user even when it's an agent.", "ko": "사용자가 에이전트일 때조차 그 사용자의 맥락을 예상했기 때문이죠."}, {"s": 324, "e": 329.21, "en": "These examples show builders that care about their users and bring that care into the work.", "ko": "이런 예시들은 사용자를 아끼고 그 마음을 작업에 담는 만드는 사람들을 보여줍니다."}, {"s": 329.21, "e": 333, "en": "It shows the character of the brand and it has soul.", "ko": "브랜드의 개성이 드러나고, 영혼이 있습니다."}, {"s": 333, "e": 337.46, "en": "We can do this with AI even though it can sometimes be the culprit.", "ko": "AI가 때로 주범이 되기도 하지만, AI로도 이렇게 할 수 있습니다."}, {"s": 337.46, "e": 344, "en": "And I have four recommendations on how we can use AI to build products with care and soul.", "ko": "그리고 AI로 정성과 영혼이 담긴 제품을 만드는 방법에 대해 네 가지를 제안하려 합니다."}, {"s": 344, "e": 348.45, "en": "First one, you have to have a point of view.", "ko": "첫째, 관점이 있어야 합니다."}, {"s": 348.45, "e": 351.25, "en": "If you don't, AI will give it for you.", "ko": "관점이 없으면 AI가 대신 정해줄 겁니다."}, {"s": 351.25, "e": 357.05, "en": "And as we've already talked about, that's very likely to be generic and looking at the past.", "ko": "이미 이야기했듯이, 그건 십중팔구 뻔하고 과거를 보는 관점일 겁니다."}, {"s": 357.05, "e": 358.9, "en": "You need to define your brand.", "ko": "여러분의 브랜드를 정의해야 합니다."}, {"s": 358.9, "e": 360.4, "en": "What is it for you?", "ko": "여러분에게 브랜드는 무엇인가요?"}, {"s": 360.4, "e": 361.93, "en": "What is it for your users?", "ko": "사용자에게는 무엇인가요?"}, {"s": 361.93, "e": 363.47, "en": "Who do you want to be to them?", "ko": "그들에게 어떤 존재가 되고 싶나요?"}, {"s": 363.47, "e": 365, "en": "And what do they care about?", "ko": "그리고 그들은 무엇을 중요하게 여기나요?"}, {"s": 365, "e": 368, "en": "This forms the basis of your standards.", "ko": "이것이 여러분 기준의 토대가 됩니다."}, {"s": 368, "e": 372.62, "en": "And I'd say this in any era, but it's all the more important right now.", "ko": "어느 시대에나 할 말이지만, 지금은 더더욱 중요합니다."}, {"s": 372.62, "e": 375.69, "en": "When building is distributed, ownership is diffuse.", "ko": "만드는 일이 분산되면, 주인의식은 흩어집니다."}, {"s": 375.69, "e": 380.51, "en": "We're all contributing to the products in more ways than we've been in the past.", "ko": "우리 모두가 예전보다 더 많은 방식으로 제품에 기여하고 있습니다."}, {"s": 380.51, "e": 382.4, "en": "It's too easy to abdicate to AI.", "ko": "AI에게 책임을 넘겨버리기가 너무 쉽습니다."}, {"s": 382.4, "e": 387.78, "en": "So, for example, at Stripe, we care a lot about optimism.", "ko": "예를 들어 Stripe에서는 낙관주의를 아주 중요하게 생각합니다."}, {"s": 387.78, "e": 391.7, "en": "So we put that into all the details big and small.", "ko": "그래서 크고 작은 모든 디테일에 그걸 담습니다."}, {"s": 391.7, "e": 401, "en": "The colors we choose, the way we write, what we write about, and the products that we ship to try to support entrepreneurs.", "ko": "우리가 고르는 색, 글 쓰는 방식, 무엇에 대해 쓰는지, 그리고 창업가를 돕기 위해 내놓는 제품까지요."}, {"s": 401, "e": 408, "en": "Now, these details are so important to be aligned on because everybody is contributing and so much is changing.", "ko": "모두가 기여하고 많은 것이 바뀌고 있기 때문에, 이런 디테일에 대해 합의하는 게 아주 중요합니다."}, {"s": 408, "e": 412.55, "en": "And I'll give you an example of where that friction can show up if there isn't alignment.", "ko": "합의가 없을 때 어디서 마찰이 생기는지 예를 들어볼게요."}, {"s": 412.55, "e": 415.79, "en": "We were recently in a design crit looking at an advertisement.", "ko": "최근 디자인 크리틱에서 광고 하나를 보고 있었습니다."}, {"s": 415.79, "e": 422.68, "en": "So, this is an ad we were working on that shows our brand, the parallelogram, with our users visuals.", "ko": "이건 우리가 작업하던 광고인데, 우리 브랜드인 평행사변형을 사용자 비주얼과 함께 보여줍니다."}, {"s": 422.68, "e": 425.15, "en": "And as we were looking at this, we're like, \"All right, cool.", "ko": "이걸 보면서 우리는 이랬죠. \"좋아, 괜찮네."}, {"s": 425.15, "e": 428.11, "en": "You kind of get what's happening, but some things are off.\"", "ko": "뭘 말하려는지는 대충 알겠는데, 몇 가지가 어긋나 있어.\""}, {"s": 428.11, "e": 433.09, "en": "And in the room was a cross functional partner that was looking to move fast and get something shipped.", "ko": "그 자리에 빨리 움직여서 뭔가 출시하고 싶어 하는 협업 부서 파트너가 있었습니다."}, {"s": 433.09, "e": 434.6, "en": "Sure, you can't relate.", "ko": "물론 여러분은 공감 못 하시겠죠."}, {"s": 434.6, "e": 440, "en": "And we had a discussion because they brought up a really interesting question.", "ko": "그리고 토론을 했습니다. 그분이 정말 흥미로운 질문을 던졌거든요."}, {"s": 440, "e": 443.23, "en": "What's the quality standard for something made with AI?", "ko": "AI로 만든 것의 품질 기준은 무엇인가?"}, {"s": 443.23, "e": 446, "en": "What a curious question.", "ko": "참 흥미로운 질문이죠."}, {"s": 446, "e": 448, "en": "Why should that matter how it was made?", "ko": "어떻게 만들었는지가 왜 중요할까요?"}, {"s": 448, "e": 450.54, "en": "It doesn't matter to the users how it was made.", "ko": "사용자에게는 그게 어떻게 만들어졌는지 중요하지 않습니다."}, {"s": 450.54, "e": 452.95, "en": "It matters to them if it's good or not.", "ko": "그들에게 중요한 건 그게 좋으냐 아니냐입니다."}, {"s": 452.95, "e": 455.79, "en": "And so that is the basis of our standards.", "ko": "그래서 그것이 우리 기준의 토대입니다."}, {"s": 455.79, "e": 461.85, "en": "It's the output at the end of the day that matters and they care if it's good and so should we.", "ko": "결국 중요한 건 최종 결과물이고, 사용자는 그게 좋은지를 신경 쓰니 우리도 그래야 합니다."}, {"s": 461.85, "e": 466.51, "en": "So through that discussion, we've got alignment on what really matters here and what we're striving for", "ko": "그 토론을 통해 여기서 진짜 중요한 게 무엇이고 우리가 무엇을 지향하는지 합의했고,"}, {"s": 466.51, "e": 471.03, "en": "and then walked away with 17 bullet points of improvements to be made.", "ko": "개선할 점 17개 항목을 들고 나왔습니다."}, {"s": 471.03, "e": 475.85, "en": "The frost a little bit here and there, softer edges, a bit smaller bubbles.", "ko": "여기저기 성에를 조금, 더 부드러운 가장자리, 조금 더 작은 거품들."}, {"s": 475.85, "e": 483.53, "en": "And now we use this term as a verb to mean meticulous craft around the office called Pepsi bubbling.", "ko": "그리고 이제 사무실에서는 세심한 공예를 뜻하는 동사로 '펩시 버블링'이라는 말을 씁니다."}, {"s": 483.53, "e": 485.32, "en": "Now, we're not shooting for perfection.", "ko": "우리는 완벽을 노리는 게 아닙니다."}, {"s": 485.32, "e": 488.58, "en": "We're shooting to go one level deeper than what your customer could see.", "ko": "고객이 볼 수 있는 것보다 한 단계 더 깊이 들어가려는 겁니다."}, {"s": 488.58, "e": 491.76, "en": "That meticulous craft will show up for them.", "ko": "그 세심한 공예는 고객에게 드러나게 됩니다."}, {"s": 491.76, "e": 498.5, "en": "And this point of view really drives the standards and drives the work, especially when there's agents involved.", "ko": "그리고 이 관점이 기준을 이끌고 작업을 이끕니다. 특히 에이전트가 개입할 때는요."}, {"s": 498.5, "e": 500.9, "en": "And so much more is happening on a daily basis.", "ko": "그리고 매일 훨씬 더 많은 일이 일어나고 있으니까요."}, {"s": 500.9, "e": 502.33, "en": "So how do you develop it?", "ko": "그럼 관점은 어떻게 기를까요?"}, {"s": 502.33, "e": 507.03, "en": "Frankly, it's all about getting really good at noticing.", "ko": "솔직히 말해, 알아차리는 능력을 정말 잘 기르는 게 전부입니다."}, {"s": 507.03, "e": 511.58, "en": "Notice what your users need and what they want, not just what they say.", "ko": "사용자가 말하는 것만이 아니라, 그들이 필요로 하고 원하는 것을 알아차리세요."}, {"s": 511.58, "e": 517.46, "en": "Notice what about the world around you signals good and great and meh.", "ko": "주변 세상의 무엇이 좋음, 훌륭함, 그저 그럼을 드러내는지 알아차리세요."}, {"s": 517.46, "e": 523.45, "en": "Really take note of these things in the products that you use, but also in analogous situations", "ko": "여러분이 쓰는 제품에서 이런 것들을 꼭 눈여겨보세요. 비슷한 다른 상황에서도요."}, {"s": 523.45, "e": 529.59, "en": "so you can be inspired by art, science, and a broader point of view in the work that you create.", "ko": "그래야 예술, 과학, 그리고 더 넓은 관점에서 영감을 받아 작업할 수 있습니다."}, {"s": 529.59, "e": 533.32, "en": "Building your sense of taste and your understanding of the world around you and what's good", "ko": "여러분의 취향 감각과 주변 세상에 대한 이해, 무엇이 좋고"}, {"s": 533.32, "e": 539.49, "en": "and great can really improve your own standards that you will then need to scale.", "ko": "훌륭한지에 대한 감각을 키우면, 나중에 확장해야 할 여러분 자신의 기준이 정말 높아집니다."}, {"s": 539.49, "e": 545.69, "en": "Which brings me to my second recommendation, which is encode your standards into the machine.", "ko": "이제 두 번째 제안으로 넘어갑니다. 여러분의 기준을 기계에 새겨 넣으라는 겁니다."}, {"s": 545.69, "e": 551.77, "en": "It would be a wonderful world if every human had the shared understandings and could make the same decision.", "ko": "모든 사람이 같은 이해를 공유하고 똑같은 결정을 내릴 수 있다면 멋진 세상이겠죠."}, {"s": 551.77, "e": 557.45, "en": "But the reality is humans are not going to be a part of all of these decisions going forward.", "ko": "하지만 현실은, 앞으로 이 모든 결정에 사람이 다 관여하진 않을 겁니다."}, {"s": 557.45, "e": 561.26, "en": "We are seeing interfaces built without a designer in the room.", "ko": "디자이너가 없는 상태에서 만들어지는 인터페이스를 보고 있습니다."}, {"s": 561.26, "e": 565.33, "en": "We're seeing agents finding problems and fixing them while we sleep.", "ko": "우리가 자는 동안 에이전트가 문제를 찾아 고치는 것도 보고 있죠."}, {"s": 565.33, "e": 571.16, "en": "And we're certainly seeing generative UI built in real time for users.", "ko": "그리고 분명히 사용자를 위해 실시간으로 생성되는 UI도 보고 있습니다."}, {"s": 571.16, "e": 575.54, "en": "This is why design systems are having a moment again.", "ko": "그래서 디자인 시스템이 다시 주목받고 있는 겁니다."}, {"s": 575.54, "e": 579.66, "en": "And the system of yesterday is different than the system of today.", "ko": "그리고 어제의 시스템과 오늘의 시스템은 다릅니다."}, {"s": 579.66, "e": 587.4, "en": "In the past, you didn't have to write everything down because there was always a designer in the room to fill in the blanks.", "ko": "예전엔 모든 걸 글로 남길 필요가 없었습니다. 빈칸을 채워줄 디자이너가 늘 그 자리에 있었으니까요."}, {"s": 587.4, "e": 596.14, "en": "Now, we must enable distributed building and agentic construction and the decisions need to be easier to define.", "ko": "이제는 분산된 제작과 에이전트 기반 구축을 가능하게 해야 하고, 결정은 더 쉽게 정의될 수 있어야 합니다."}, {"s": 596.14, "e": 599.63, "en": "So, the object of design is no longer the screen.", "ko": "그러니 디자인의 대상은 더 이상 화면이 아닙니다."}, {"s": 599.63, "e": 601.61, "en": "It is the system itself.", "ko": "바로 시스템 그 자체입니다."}, {"s": 601.61, "e": 606.65, "en": "Now, everybody knows Gutenberg created the first printing press.", "ko": "구텐베르크가 최초의 인쇄기를 만들었다는 건 누구나 압니다."}, {"s": 606.65, "e": 611.22, "en": "The lesser-known part of the story is the system he built around it.", "ko": "덜 알려진 부분은 그가 그 주변에 구축한 시스템입니다."}, {"s": 611.22, "e": 617.69, "en": "He didn't create just 26 lowercase and 26 uppercase letters.", "ko": "그는 소문자 26자와 대문자 26자만 만든 게 아니었습니다."}, {"s": 617.69, "e": 625.22, "en": "He created 290 unique characters, different widths, abbreviations, ligatures.", "ko": "폭이 다른 글자, 약어, 합자까지 290개의 고유한 문자를 만들었습니다."}, {"s": 625.22, "e": 630.56, "en": "And the reason that he did this is because when he typeset it and wanted it to be fully justified,", "ko": "그렇게 한 이유는, 조판을 해서 양쪽 정렬을 하려고 할 때"}, {"s": 630.56, "e": 638, "en": "he wanted to make sure that there wouldn't be the weird rivers and lakes of white space that erode the beauty of the final product.", "ko": "최종 결과물의 아름다움을 해치는 이상한 공백의 강과 호수가 생기지 않게 하고 싶었기 때문입니다."}, {"s": 638, "e": 646.58, "en": "Essentially, he was making it both extensible and opinionated enough that it could feel as good as handmade, although it was machine-made.", "ko": "본질적으로 그는 기계로 만들었지만 손으로 만든 것만큼 좋게 느껴지도록, 확장 가능하면서도 충분히 확고한 시스템을 만든 겁니다."}, {"s": 646.58, "e": 650, "en": "This is what we should be aiming for as well.", "ko": "우리도 바로 이걸 목표로 해야 합니다."}, {"s": 650, "e": 656.42, "en": "Now, the old system scaled consistency, but the new system needs to scale intent.", "ko": "예전 시스템은 일관성을 확장했지만, 새 시스템은 의도를 확장해야 합니다."}, {"s": 656.42, "e": 661.02, "en": "We've been working on this at Stripe and, you know, have hit a few snags along the way.", "ko": "Stripe에서 이 작업을 해오고 있는데, 아시다시피 그 과정에서 몇 가지 난관에 부딪혔습니다."}, {"s": 661.02, "e": 662.87, "en": "And so, we're figuring it out.", "ko": "그래서 지금 알아가는 중입니다."}, {"s": 662.87, "e": 670.89, "en": "But one of the things we want to do is we want to empower builders to go from prompt to production nearly instantaneously.", "ko": "하지만 우리가 하고 싶은 것 중 하나는, 만드는 사람들이 프롬프트에서 프로덕션까지 거의 즉시 갈 수 있게 하는 겁니다."}, {"s": 670.89, "e": 677.37, "en": "Like many, we started with an MCP that understood our design documentation, but the results were not great.", "ko": "많은 회사처럼 우리도 디자인 문서를 이해하는 MCP로 시작했는데, 결과가 좋지 않았습니다."}, {"s": 677.37, "e": 681.51, "en": "It wasn't specific enough and it wasn't driving the right outcomes.", "ko": "충분히 구체적이지 않았고, 올바른 결과를 이끌어내지 못했습니다."}, {"s": 681.51, "e": 686.97, "en": "Three different people could put in the same prompt and get three different results.", "ko": "세 사람이 같은 프롬프트를 넣어도 세 가지 다른 결과가 나왔죠."}, {"s": 686.97, "e": 692.44, "en": "So since then we've evolved and now we have created a CLI built on our design system.", "ko": "그 이후로 발전해서, 이제는 우리 디자인 시스템 위에 CLI를 만들었습니다."}, {"s": 692.44, "e": 695.53, "en": "It makes a harness that makes the AI far more obedient.", "ko": "AI를 훨씬 더 말 잘 듣게 만드는 하네스 역할을 합니다."}, {"s": 695.53, "e": 704.55, "en": "Now it's where the builders are building and it consumes the documentation at the right time and place to avoid context rot.", "ko": "이제 만드는 사람들이 실제로 작업하는 곳에 있고, 컨텍스트 부패를 막기 위해 적절한 때와 장소에서 문서를 불러옵니다."}, {"s": 704.55, "e": 709.77, "en": "Now, importantly, the big difference between this version and a previous design system is it's", "ko": "중요한 건, 이번 버전과 이전 디자인 시스템의 큰 차이는"}, {"s": 709.77, "e": 715.17, "en": "not just components and atomic parts, but it's actually full templates and flows.", "ko": "컴포넌트와 원자 단위 부품만이 아니라 완전한 템플릿과 플로우까지 담고 있다는 점입니다."}, {"s": 715.17, "e": 721.26, "en": "So, the system actually knows what our product is supposed to behave like and how it all comes together.", "ko": "그래서 시스템이 우리 제품이 어떻게 동작해야 하고 어떻게 맞물리는지를 실제로 알고 있습니다."}, {"s": 721.26, "e": 725.3, "en": "Essentially, it's far more opinionated than it's been in the past.", "ko": "본질적으로 예전보다 훨씬 더 확고한 의견을 가진 시스템이죠."}, {"s": 725.3, "e": 731.73, "en": "We embed these standards into the means of production, which enables a more coherent product.", "ko": "우리는 이런 기준을 생산 수단 자체에 심어 넣고, 그 덕분에 더 일관된 제품이 나옵니다."}, {"s": 731.73, "e": 734.17, "en": "But this is just the baseline.", "ko": "하지만 이건 기본선일 뿐입니다."}, {"s": 734.17, "e": 740.46, "en": "Christopher Alexander said, \"A system can satisfy every rule and still be dead.\"", "ko": "크리스토퍼 알렉산더는 이렇게 말했습니다. \"시스템은 모든 규칙을 만족하면서도 여전히 죽어 있을 수 있다.\""}, {"s": 740.46, "e": 745, "en": "This brings me to my third recommendation.", "ko": "이제 세 번째 제안입니다."}, {"s": 745, "e": 750, "en": "Refuse to confuse done with good.", "ko": "'완성'을 '좋음'과 혼동하지 마세요."}, {"s": 750, "e": 751.71, "en": "The filter is gone.", "ko": "필터가 사라졌습니다."}, {"s": 751.71, "e": 753, "en": "It used to be.", "ko": "예전엔 있었죠."}, {"s": 753, "e": 760.27, "en": "Quality filter was essentially built into every stage of the product development process, even before a project started.", "ko": "품질 필터는 제품 개발 과정의 모든 단계에, 심지어 프로젝트가 시작되기 전부터 기본으로 들어 있었습니다."}, {"s": 760.27, "e": 764.24, "en": "We've got 20 ideas and we can only staff one.", "ko": "아이디어는 20개인데 인력은 하나에만 붙일 수 있었죠."}, {"s": 764.24, "e": 773, "en": "And then we poked and we prodded and we pruned along the way and products grew somewhat methodically.", "ko": "그다음 찔러보고, 따져보고, 가지치기하면서 제품이 어느 정도 체계적으로 자랐습니다."}, {"s": 773, "e": 776.46, "en": "Well, now we can build 20 ideas in a week.", "ko": "그런데 이제는 일주일에 아이디어 20개를 만들 수 있습니다."}, {"s": 776.46, "e": 786, "en": "This is awesome in many ways and we can finally skip theoretical meetings talking about hypothetical products and react to the real thing in our hands.", "ko": "여러모로 멋진 일이고, 마침내 가상의 제품에 대한 이론적인 회의를 건너뛰고 손에 쥔 실물에 반응할 수 있게 됐습니다."}, {"s": 786, "e": 795.32, "en": "But the filtering that used to be throughout the process now needs to happen post build when it is a lot harder to say no.", "ko": "하지만 과정 전반에 있던 필터링이 이제는 다 만든 뒤에 일어나야 하고, 그때는 '아니요'라고 말하기가 훨씬 어렵습니다."}, {"s": 795.32, "e": 801.45, "en": "This is where the role of an editor comes in and it is ultra important in this day and age.", "ko": "바로 여기서 편집자의 역할이 등장하고, 요즘 같은 시대엔 이게 엄청나게 중요합니다."}, {"s": 801.45, "e": 803.69, "en": "Who is doing this in your organization?", "ko": "여러분 조직에서는 누가 이 일을 하고 있나요?"}, {"s": 803.69, "e": 808.42, "en": "Who's looking at the end to end and understanding whether or not we're actually building a whole?", "ko": "누가 처음부터 끝까지 보면서 우리가 정말 하나의 완결된 전체를 만들고 있는지 판단하고 있나요?"}, {"s": 808.42, "e": 810, "en": "It's a new behavior.", "ko": "이건 새로운 행동 방식입니다."}, {"s": 810, "e": 816.61, "en": "We have to unlearn that built means done and that done means good.", "ko": "'만들었다 = 끝났다', '끝났다 = 좋다'라는 생각을 버려야 합니다."}, {"s": 816.61, "e": 824.62, "en": "The most important thing I can say to anybody working on their editing skills is you have to experience it like a user would.", "ko": "편집 역량을 키우려는 분께 드릴 수 있는 가장 중요한 말은, 사용자처럼 직접 경험해 봐야 한다는 겁니다."}, {"s": 824.62, "e": 827.46, "en": "Does it actually solve the problem?", "ko": "정말 문제를 해결하나요?"}, {"s": 827.46, "e": 831.55, "en": "Is it actually attuned to the way the user thinks about things?", "ko": "사용자가 생각하는 방식에 정말 맞춰져 있나요?"}, {"s": 831.55, "e": 833.42, "en": "Is it actually coherent?", "ko": "정말 일관성이 있나요?"}, {"s": 833.42, "e": 838.9, "en": "A lot of things look good in isolation, but then when you pull it to all together into the user journey,", "ko": "많은 것들이 따로 보면 괜찮아 보이지만, 사용자 여정 속에 전부 모아 놓으면"}, {"s": 838.9, "e": 846, "en": "it feels a little disconnected and it's not just about saying yes or no, this is good or it shouldn't go.", "ko": "조금 따로 노는 느낌이 듭니다. 그리고 이건 단지 '좋다, 내보내지 말자'처럼 예 아니면 아니오의 문제가 아닙니다."}, {"s": 846, "e": 848.5, "en": "It's actually about is it even fully formed?", "ko": "사실은 이게 제대로 형태를 갖추기나 했느냐의 문제죠."}, {"s": 848.5, "e": 850.88, "en": "How can we push this to completion?", "ko": "어떻게 이걸 완성까지 밀어붙일 수 있을까요?"}, {"s": 850.88, "e": 854.1, "en": "We don't want done to be the enemy of good.", "ko": "'완성'이 '좋음'의 적이 되는 걸 원하지 않습니다."}, {"s": 854.1, "e": 859.87, "en": "A very insightful article by Nabeel Qureshi talks about what makes art great.", "ko": "나빌 쿠레시의 아주 통찰력 있는 글은 무엇이 예술을 위대하게 만드는지 이야기합니다."}, {"s": 859.87, "e": 867.8, "en": "And he says it's about the unexpected details, those little surprising things you're like, \"Wow, I can't believe they thought of that.\"", "ko": "그는 그게 예상치 못한 디테일에 있다고 말합니다. \"와, 이것까지 생각했다니\" 싶은 작은 놀라움들이요."}, {"s": 867.8, "e": 874, "en": "And then the deeper meaning that sits behind the surface or the continuous themes that tie it all together to a whole.", "ko": "그리고 표면 아래에 있는 더 깊은 의미, 혹은 전체를 하나로 묶는 일관된 주제들이죠."}, {"s": 874, "e": 877, "en": "These are the things that AI is not great at.", "ko": "이런 것들은 AI가 잘하지 못하는 부분입니다."}, {"s": 877, "e": 885.05, "en": "But knowing what the gaps are in AI help us better navigate that and fill these gaps in.", "ko": "하지만 AI의 빈틈이 어디인지 알면 그걸 더 잘 헤쳐가고 그 빈틈을 채울 수 있습니다."}, {"s": 885.05, "e": 893.08, "en": "As Nabeel says, one of the things that so offends us about AI slop is the sense that the details don't matter.", "ko": "나빌의 말처럼, AI 슬롭이 우리를 그토록 불쾌하게 하는 이유 중 하나는 디테일이 중요하지 않다는 느낌입니다."}, {"s": 893.08, "e": 896.8, "en": "The cup is green but may as well have been blue.", "ko": "컵이 초록색인데, 파란색이었어도 상관없었을 것 같은 거죠."}, {"s": 896.8, "e": 903.97, "en": "An editor takes accountability for every decision, which is in many ways every pixel.", "ko": "편집자는 모든 결정에 책임을 집니다. 여러 면에서 그건 모든 픽셀이죠."}, {"s": 903.97, "e": 907.53, "en": "I'll give you an example from this event.", "ko": "이번 행사에서 예를 하나 들어볼게요."}, {"s": 907.53, "e": 910.37, "en": "So my team had the pleasure of designing the event.", "ko": "저희 팀이 영광스럽게도 이 행사의 디자인을 맡았습니다."}, {"s": 910.37, "e": 915, "en": "Stefan worked on this fabulous opening animation.", "ko": "스테판이 이 멋진 오프닝 애니메이션을 작업했습니다."}, {"s": 915, "e": 924, "en": "He and the team started with a 3D model of the scene and then they brought it into AI to help with the different animations.", "ko": "그와 팀은 장면의 3D 모델로 시작해서, 여러 애니메이션을 위해 AI로 가져갔습니다."}, {"s": 924, "e": 927, "en": "Now here's the first version.", "ko": "이게 첫 번째 버전입니다."}, {"s": 927, "e": 932.44, "en": "It's cool. It's, you know, fun to see the different little parts of it and it's nice the way it moves.", "ko": "멋지죠. 작은 부분들이 하나하나 보이는 것도 재밌고 움직이는 방식도 좋습니다."}, {"s": 932.44, "e": 937, "en": "But if you scrutinate, scrutinize it pixel by pixel, something feels off, right?", "ko": "하지만 픽셀 단위로 꼼꼼히 들여다보면 뭔가 어긋나 있죠?"}, {"s": 937, "e": 939, "en": "That's not quite the way it should move.", "ko": "움직임이 딱 그래야 하는 방식은 아닙니다."}, {"s": 939, "e": 939.56, "en": "It's a little jilted.", "ko": "조금 뚝뚝 끊깁니다."}, {"s": 939.56, "e": 942.54, "en": "You kind of want to get more of the scene, right?", "ko": "장면을 좀 더 보고 싶어지죠?"}, {"s": 942.54, "e": 950.1, "en": "So he did it again and again and again.", "ko": "그래서 그는 다시, 또다시, 또다시 했습니다."}, {"s": 950.1, "e": 956.42, "en": "56 times, 56 iterations later, he got to something truly beautiful.", "ko": "56번, 56번의 반복 끝에 정말 아름다운 결과에 도달했습니다."}, {"s": 956.42, "e": 958.46, "en": "Now, it's got more realism.", "ko": "이제 훨씬 사실적입니다."}, {"s": 958.46, "e": 965, "en": "It's got a little bit of life and it's subtle differences, but you can sense the care.", "ko": "생동감이 조금 생겼고 미묘한 차이들이지만, 정성이 느껴집니다."}, {"s": 965, "e": 971.22, "en": "Now, what one of the things that so impresses me about this is that if he didn't use AI,", "ko": "제가 이 작업에서 정말 감탄하는 점 중 하나는, 그가 AI를 쓰지 않았다면"}, {"s": 971.22, "e": 978, "en": "he may not have built such a complex scene or he may not have tried so many different viewpoints.", "ko": "이렇게 복잡한 장면을 만들지 못했거나, 이렇게 많은 시점을 시도해 보지 못했을 수도 있다는 겁니다."}, {"s": 978, "e": 985.55, "en": "And while it wasn't one and done and certainly took a lot of wherewithal and scrutiny, AI opened the possibility space.", "ko": "한 번에 끝난 것도 아니고 분명 많은 수완과 꼼꼼한 검토가 필요했지만, AI가 가능성의 공간을 열어줬습니다."}, {"s": 985.55, "e": 992, "en": "Now, this brings me to my last and definitely my favorite fourth recommendation.", "ko": "이제 마지막이자, 제가 가장 좋아하는 네 번째 제안입니다."}, {"s": 992, "e": 996.02, "en": "Unleash creativity and artistry.", "ko": "창의성과 예술성을 해방하세요."}, {"s": 996.02, "e": 1004, "en": "Yes, AI can help us manufacture monotony, but it is also the greatest creative catalyst we've ever had.", "ko": "그렇습니다, AI는 단조로움을 대량생산하는 데 쓰일 수도 있지만, 동시에 우리가 가져본 가장 위대한 창의적 촉매이기도 합니다."}, {"s": 1004, "e": 1013, "en": "This matters more now because when everybody in their mother is building something, it is going to be harder and more important to differentiate.", "ko": "너나 할 것 없이 모두가 뭔가를 만들고 있는 지금, 차별화는 더 어려워지고 더 중요해지기 때문에 이게 더 중요합니다."}, {"s": 1013, "e": 1018.71, "en": "And the interfaces of today, chats, charts, CLIs.", "ko": "그리고 오늘날의 인터페이스, 채팅, 차트, CLI."}, {"s": 1018.71, "e": 1025, "en": "No way is that the epitome of great interactions in the modern era.", "ko": "그게 현대의 훌륭한 인터랙션의 정점일 리가 없습니다."}, {"s": 1025, "e": 1033.71, "en": "There is so much more we can do and so much more we should do to make things feel generative, alive, responsive, dynamic.", "ko": "사물을 생성적이고, 살아 있고, 반응하고, 역동적으로 느껴지게 하기 위해 우리가 할 수 있고 해야 할 일이 훨씬 많습니다."}, {"s": 1033.71, "e": 1036.85, "en": "We can literally talk to the computers.", "ko": "우리는 말 그대로 컴퓨터와 대화할 수 있습니다."}, {"s": 1036.85, "e": 1038.54, "en": "So, let's branch out.", "ko": "그러니 영역을 넓혀 봅시다."}, {"s": 1038.54, "e": 1041.51, "en": "It is time to invent new interfaces.", "ko": "새로운 인터페이스를 발명할 때입니다."}, {"s": 1041.51, "e": 1044.33, "en": "It is time to invent new aesthetics.", "ko": "새로운 미학을 발명할 때입니다."}, {"s": 1044.33, "e": 1047.78, "en": "The best practices have not been written yet.", "ko": "모범 사례는 아직 쓰이지 않았습니다."}, {"s": 1047.78, "e": 1050.67, "en": "We get to do that and now we have the tools to do it.", "ko": "우리가 그걸 쓰게 되고, 이제 그럴 도구도 갖췄습니다."}, {"s": 1050.67, "e": 1059.2, "en": "It's just like when multi-touch made it possible to do wholly new interactions or the synthesizer allowed us to create totally new sounds.", "ko": "멀티터치가 완전히 새로운 인터랙션을 가능하게 했거나, 신시사이저가 완전히 새로운 소리를 만들게 해준 것과 똑같습니다."}, {"s": 1059.2, "e": 1062.78, "en": "AI is allowing all sorts of new creativity.", "ko": "AI는 온갖 새로운 창의성을 가능하게 하고 있습니다."}, {"s": 1062.78, "e": 1064.8, "en": "And we're seeing so much of this online.", "ko": "그리고 온라인에서 이런 걸 정말 많이 보고 있죠."}, {"s": 1064.8, "e": 1070.51, "en": "We're even seeing folks showing up the Stripe design team with way more interesting data viz.", "ko": "심지어 훨씬 더 흥미로운 데이터 시각화로 Stripe 디자인 팀을 무색하게 만드는 사람들도 보입니다."}, {"s": 1070.51, "e": 1079.92, "en": "And we're seeing websites for restaurants with character and personality and people using AI to paint and create art themselves.", "ko": "개성 있는 식당 웹사이트들, 그리고 AI로 직접 그림을 그리고 예술을 만드는 사람들도 보이고요."}, {"s": 1079.92, "e": 1082.46, "en": "It is a really interesting time.", "ko": "정말 흥미로운 시기입니다."}, {"s": 1082.46, "e": 1089.25, "en": "And at Stripe, we're using AI to essentially amplify the abilities of the creative team.", "ko": "그리고 Stripe에서는 본질적으로 크리에이티브 팀의 능력을 증폭하는 데 AI를 쓰고 있습니다."}, {"s": 1089.25, "e": 1099.54, "en": "Our most recent cover for Built to Grow, it was created by a human marbler who worked on these stunning iterations.", "ko": "가장 최근의 'Built to Grow' 표지는 이 멋진 반복 작업을 한 인간 마블링 작가가 만들었습니다."}, {"s": 1099.54, "e": 1109, "en": "And then we used AI to fine-tune the details ever further to ensure we had the colors and the lines in all the right places.", "ko": "그다음 AI로 디테일을 더 다듬어서 색과 선이 모두 제자리에 있도록 했습니다."}, {"s": 1109, "e": 1115.81, "en": "It was basically taking the good judgment of the humans and helping us scale it to make something truly stunning.", "ko": "기본적으로 사람의 좋은 판단력을 가져와서, 정말 멋진 걸 만들도록 그걸 확장하는 걸 도운 거죠."}, {"s": 1115.81, "e": 1121.11, "en": "Now, to make AI a stronger creative partner, there's a couple of things I recommend.", "ko": "AI를 더 강력한 창작 파트너로 만들기 위해 몇 가지를 권합니다."}, {"s": 1121.11, "e": 1123.62, "en": "One, improve your inputs.", "ko": "첫째, 입력을 개선하세요."}, {"s": 1123.62, "e": 1129.89, "en": "You want more specificity going in the direction of your brand, your unique interests.", "ko": "여러분의 브랜드, 여러분만의 관심사 방향으로 더 구체적으로 넣어야 합니다."}, {"s": 1129.89, "e": 1132, "en": "So, put specific prompts.", "ko": "그러니 구체적인 프롬프트를 쓰세요."}, {"s": 1132, "e": 1136.68, "en": "Don't just say, \"Hey, I need a website for my Korean barbecue, but this is what I believe in.", "ko": "그냥 \"한국식 바비큐 웹사이트가 필요해\"라고만 하지 말고, \"그런데 우리는 이걸 믿어."}, {"s": 1136.68, "e": 1137.76, "en": "This is what good is.", "ko": "이게 우리가 생각하는 좋은 거야."}, {"s": 1137.76, "e": 1139.8, "en": "This is what we care about.\"", "ko": "이게 우리가 중요하게 여기는 거야\"라고 말하세요."}, {"s": 1139.8, "e": 1144.03, "en": "Add your source material that you're using to build your own standards with.", "ko": "여러분이 자기 기준을 세울 때 쓰는 원천 자료를 함께 넣으세요."}, {"s": 1144.03, "e": 1146.9, "en": "Help make it think in different ways.", "ko": "AI가 다른 방식으로 생각하도록 도우세요."}, {"s": 1146.9, "e": 1149.53, "en": "And then stress your outputs.", "ko": "그다음 출력물을 강하게 시험하세요."}, {"s": 1149.53, "e": 1152.42, "en": "Don't get tempted by the burrito dilemma.", "ko": "부리토 딜레마에 넘어가지 마세요."}, {"s": 1152.42, "e": 1159.22, "en": "Always push a step further and then of course use adversarial agents to help you critique it", "ko": "항상 한 걸음 더 밀어붙이고, 물론 적대적 에이전트를 써서 비평하게 하고"}, {"s": 1159.22, "e": 1164.39, "en": "and bang it up a little bit, but you yourself should always be pushing for better.", "ko": "좀 두들겨 보게 하세요. 하지만 여러분 스스로가 늘 더 나은 걸 향해 밀어붙여야 합니다."}, {"s": 1164.39, "e": 1165.8, "en": "Now, these are just tactics.", "ko": "자, 이건 전술일 뿐입니다."}, {"s": 1165.8, "e": 1170, "en": "The much harder thing is definitely cultural.", "ko": "훨씬 더 어려운 건 단연 문화입니다."}, {"s": 1170, "e": 1173, "en": "It is easy to follow cookie cutter patterns.", "ko": "찍어낸 듯한 패턴을 따르는 건 쉽습니다."}, {"s": 1173, "e": 1183, "en": "It's safe and cozy, but it is much more impressive and much harder to find something unique that improves the status quo.", "ko": "안전하고 편안하죠. 하지만 현 상태를 개선하는 독특한 무언가를 찾는 것이 훨씬 더 인상적이고 훨씬 더 어렵습니다."}, {"s": 1183, "e": 1190, "en": "So, if you're leading a team, don't just tell them to use AI, but give them room to explore.", "ko": "그러니 팀을 이끌고 있다면, 그냥 AI를 쓰라고만 하지 말고 탐험할 여지를 주세요."}, {"s": 1190, "e": 1194.92, "en": "Protect the strange. AI lowers the cost to create.", "ko": "이상한 것을 지켜주세요. AI는 창작 비용을 낮춰줍니다."}, {"s": 1194.92, "e": 1200, "en": "Let's spend some of that savings on making something truly special.", "ko": "그렇게 아낀 것의 일부를 정말 특별한 걸 만드는 데 씁시다."}, {"s": 1200, "e": 1210, "en": "If we only use AI to make the things that we already make just faster, then we are definitely missing out on the most interesting part.", "ko": "이미 만들던 걸 그저 더 빨리 만드는 데만 AI를 쓴다면, 가장 흥미로운 부분을 분명히 놓치고 있는 겁니다."}, {"s": 1210, "e": 1214.17, "en": "AI can help us raise the ceiling, not just the floor.", "ko": "AI는 바닥만이 아니라 천장을 높이는 데도 도움이 됩니다."}, {"s": 1214.17, "e": 1219, "en": "The most important thing is to be very intentional.", "ko": "가장 중요한 건 아주 의도적이어야 한다는 것입니다."}, {"s": 1219, "e": 1221.86, "en": "It's your point of view.", "ko": "그건 여러분의 관점입니다."}, {"s": 1221.86, "e": 1231.32, "en": "It's your system. It's your quality bar and your ambition that you will want to bring to life with AI.", "ko": "여러분의 시스템입니다. 여러분이 AI로 실현하고 싶은 여러분의 품질 기준이자 야망입니다."}, {"s": 1231.32, "e": 1239, "en": "In total contrast to the post-war building boom and modernism design was Gothic architecture.", "ko": "전후 건설 붐과 모더니즘 디자인과 완전히 대조되는 것이 고딕 건축이었습니다."}, {"s": 1239, "e": 1249.71, "en": "In 1850, John Ruskin wrote a lot about quality and craft and highlighted Gothic architecture as the epitome of great.", "ko": "1850년, 존 러스킨은 품질과 공예에 대해 많은 글을 썼고, 고딕 건축을 위대함의 정점으로 꼽았습니다."}, {"s": 1249.71, "e": 1252.53, "en": "He noticed that no Gothic building was alike.", "ko": "그는 고딕 건물이 하나도 같지 않다는 걸 알아챘습니다."}, {"s": 1252.53, "e": 1256.55, "en": "Frankly, not even one column was alike the other.", "ko": "솔직히 기둥 하나조차 다른 기둥과 같지 않았죠."}, {"s": 1256.55, "e": 1263.71, "en": "Each detail was uniquely crafted and showed the unique hand and mind of the maker behind it.", "ko": "모든 디테일이 고유하게 만들어졌고, 그 뒤에 있는 만든 이의 고유한 손길과 생각을 보여줬습니다."}, {"s": 1263.71, "e": 1267, "en": "It felt truly cared for.", "ko": "정말 정성이 느껴졌습니다."}, {"s": 1267, "e": 1269.12, "en": "This is what our users want.", "ko": "이게 바로 사용자가 원하는 것입니다."}, {"s": 1269.12, "e": 1276, "en": "They're not impressed if we animated something with Three.js and Blender in 30 minutes.", "ko": "우리가 Three.js와 블렌더로 30분 만에 뭔가를 애니메이션으로 만들었다고 감탄하지 않습니다."}, {"s": 1276, "e": 1282.41, "en": "They are impressed by us solving their problems and clever touches in the details", "ko": "그들이 감탄하는 건 우리가 그들의 문제를 해결하고, 디테일에 영리한 손길을 더해"}, {"s": 1282.41, "e": 1287.05, "en": "that show we anticipated their needs and that our brand has some character behind it.", "ko": "우리가 그들의 필요를 예상했고 우리 브랜드에 개성이 있다는 걸 보여줄 때입니다."}, {"s": 1287.05, "e": 1293, "en": "We have the choice in this building boom to not make the digital equivalent of zombie buildings.", "ko": "우리에게는 이번 건설 붐에서 좀비 건물의 디지털 버전을 만들지 않을 선택권이 있습니다."}, {"s": 1293, "e": 1296, "en": "We can make this a creative renaissance.", "ko": "이걸 창의적 르네상스로 만들 수 있습니다."}, {"s": 1296, "e": 1303.19, "en": "So, let's make some products that are more powerful and show the hand and care of the maker.", "ko": "그러니 더 강력하고, 만든 이의 손길과 정성이 보이는 제품을 만들어 봅시다."}, {"s": 1303.19, "e": 1306, "en": "Thanks everybody.", "ko": "모두 감사합니다."}];
+const LS = 'shadow_GLvFTMtw4Jk_v1';
+const store = JSON.parse(localStorage.getItem(LS) || '{"best":{},"adj":{},"idx":0}');
+const save = () => localStorage.setItem(LS, JSON.stringify(store));
+let idx = Math.min(store.idx || 0, S.length - 1);
+let rate = 1, loop = false, hideText = false, showKo = false, weakOnly = false;
+let player = null, ready = false, watch = null, segEndCb = null, loopCount = 0;
+let mediaStream = null, recorder = null, chunks = [], myUrl = null, recognizer = null, heardFinal = '', heardInterim = '', recording = false, recTimer = null;
+const $ = id => document.getElementById(id);
+if (location.protocol === 'file:') $('fileBanner').style.display = 'block';
+
+// ---------- YouTube ----------
+const tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(tag);
+window.onYouTubeIframeAPIReady = () => {
+  player = new YT.Player('yt', { videoId: VIDEO_ID, playerVars: { playsinline: 1, rel: 0, hl: 'en', cc_load_policy: 0, modestbranding: 1 },
+    events: { onReady: () => { ready = true; status('준비 완료. Space로 첫 문장을 들어보세요.'); }, onStateChange: e => { if (e.data === 1) try { player.unloadModule('captions'); } catch (_) {} } } });
+};
+const segOf = i => { const a = store.adj[i] || { s: 0, e: 0 }; return { s: Math.max(0, S[i].s + a.s - 0.15), e: S[i].e + a.e + 0.25 }; };
+function playSeg(i, onEnd) {
+  if (!ready) { status('플레이어 로딩 중...'); return; }
+  const g = segOf(i); clearInterval(watch); segEndCb = onEnd || null;
+  player.setPlaybackRate(rate); player.seekTo(g.s, true); player.playVideo();
+  let started = false, t0 = Date.now();
+  watch = setInterval(() => {
+    const t = player.getCurrentTime();
+    if (!started) { if (t >= g.s - 0.6 && t < g.e) started = true; else { if (Date.now() - t0 > 2500) { t0 = Date.now(); player.seekTo(g.s, true); player.playVideo(); } return; } }
+    if (t >= g.e || t < g.s - 1.5) {
+      clearInterval(watch); player.pauseVideo();
+      const cb = segEndCb; segEndCb = null;
+      if (cb) cb();
+      else if (loop) { loopCount++; status('반복 ' + loopCount + '회'); setTimeout(() => { if (loop) playSeg(idx); }, 900); }
+    }
+  }, 40);
+}
+function stopAll() { clearInterval(watch); segEndCb = null; if (ready) player.pauseVideo(); }
+
+// ---------- Render ----------
+const norm = w => w.toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9']/g, '').replace(/^'+|'+$/g, '');
+function words(t) { return t.split(/\s+/).filter(Boolean); }
+let lastMarks = null;
+function renderSentence(marks) {
+  if (marks === undefined) marks = lastMarks; else lastMarks = marks;
+  const el = $('sent'); el.innerHTML = '';
+  words(S[idx].en).forEach((w, k) => {
+    const sp = document.createElement('span'); sp.className = 'w' + (marks ? (marks[k] ? ' ok' : (norm(w) ? ' miss' : '')) : ''); sp.textContent = w;
+    sp.onclick = () => speakWord(w); el.appendChild(sp); el.appendChild(document.createTextNode(' '));
+  });
+  el.classList.toggle('hidden', hideText && !marks);
+  $('ko').textContent = S[idx].ko || ''; $('ko').classList.toggle('hidden', !showKo);
+  const g = segOf(idx); $('curMeta').textContent = '#' + (idx + 1) + ' / ' + S.length + '  ·  ' + fmt(g.s) + ' - ' + fmt(g.e) + ((store.best[idx] != null) ? '  ·  최고 ' + store.best[idx] + '점' : '');
+}
+const fmt = t => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
+const cls = v => v >= 80 ? 'good' : v >= 55 ? 'mid' : 'low';
+function renderList() {
+  const q = $('q').value.trim().toLowerCase(); const L = $('list'); L.innerHTML = '';
+  S.forEach((s, i) => {
+    const b = store.best[i];
+    if (q && !(s.en.toLowerCase().includes(q) || (s.ko || '').includes(q))) return;
+    if (weakOnly && !(b != null && b < 80)) return;
+    const d = document.createElement('div'); d.className = 'item' + (i === idx ? ' cur' : ''); d.dataset.i = i;
+    d.innerHTML = '<div class="n">' + (i + 1) + '<div class="t">' + fmt(s.s) + '</div></div><div></div>' + '<div>' + (b != null ? '<div class="badge ' + cls(b) + '">' + b + '</div>' : '') + '</div>';
+    d.children[1].textContent = s.en; d.onclick = () => select(i, true); L.appendChild(d);
+  });
+  const vals = Object.values(store.best);
+  $('stTotal').textContent = S.length; $('stDone').textContent = vals.length; $('stGood').textContent = vals.filter(v => v >= 80).length;
+  $('stAvg').textContent = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : '-';
+}
+function select(i, play) {
+  if (recording) stopRec();
+  idx = Math.max(0, Math.min(S.length - 1, i)); store.idx = idx; save(); loopCount = 0;
+  myUrl = null; lastMarks = null; $('bMine').disabled = true; $('bCmp').disabled = true; $('result').classList.remove('show');
+  renderSentence(null); renderList();
+  const cur = document.querySelector('.item.cur'); if (cur) cur.scrollIntoView({ block: 'nearest' });
+  if (play) playSeg(idx);
+}
+function status(t) { $('status').textContent = t; }
+
+// ---------- TTS for single word ----------
+function speakWord(w) {
+  const u = new SpeechSynthesisUtterance(w.replace(/[^A-Za-z0-9'\-. ]/g, '')); u.lang = 'en-US'; u.rate = 0.8;
+  const v = speechSynthesis.getVoices().find(v => v.lang === 'en-US'); if (v) u.voice = v;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+// ---------- Recording + Recognition ----------
+async function ensureMic() {
+  if (mediaStream) return mediaStream;
+  mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  return mediaStream;
+}
+let starting = false;
+async function startRec(withOriginal) {
+  if (starting) return; starting = true;
+  if (!mediaStream) status('브라우저 상단의 마이크 권한 요청에서 "허용"을 눌러주세요...');
+  try { await ensureMic(); } catch (e) { starting = false; status('마이크 권한이 필요해요. 주소창의 마이크 아이콘에서 허용해 주세요.'); return; }
+  starting = false;
+  stopAll(); chunks = []; heardFinal = ''; heardInterim = ''; gradedFor = null; renderSentence(null);
+  recorder = new MediaRecorder(mediaStream);
+  recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+  recorder.onstop = () => { myUrl = URL.createObjectURL(new Blob(chunks, { type: recorder.mimeType })); $('bMine').disabled = false; $('bCmp').disabled = false; };
+  recorder.start();
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) {
+    recognizer = new SR(); recognizer.lang = 'en-US'; recognizer.continuous = true; recognizer.interimResults = true; recognizer.maxAlternatives = 1;
+    recognizer.onresult = e => { heardInterim = ''; for (let k = e.resultIndex; k < e.results.length; k++) { if (e.results[k].isFinal) heardFinal += ' ' + e.results[k][0].transcript; else heardInterim += ' ' + e.results[k][0].transcript; } $('heard').textContent = '인식 중: ' + (heardFinal + heardInterim).trim(); $('result').classList.add('show'); };
+    recognizer.onerror = e => { if (e.error !== 'no-speech' && e.error !== 'aborted') status('음성 인식 오류: ' + e.error); };
+    try { recognizer.start(); } catch (_) {}
+  } else status('이 브라우저는 음성 인식을 지원하지 않아요(Chrome 권장). 녹음·비교는 가능해요.');
+  recording = true; $('bRec').classList.add('on'); $('bRec').innerHTML = '■ 녹음 정지 <kbd>R</kbd>';
+  $('score').textContent = '...'; $('score').className = 'score'; $('scoreNote').textContent = ''; $('heard').textContent = '말해보세요...'; $('result').classList.add('show');
+  const dur = (segOf(idx).e - segOf(idx).s) / rate;
+  if (withOriginal) { status('쉐도잉 중: 원문과 겹쳐서 말하세요.'); playSeg(idx, () => setTimeout(stopRec, 900)); }
+  else { status('녹음 중... 끝나면 R'); clearTimeout(recTimer); recTimer = setTimeout(() => recording && stopRec(), dur * 2.5 * 1000 + 4000); }
+}
+function stopRec() {
+  if (!recording) return; recording = false; clearTimeout(recTimer);
+  $('bRec').classList.remove('on'); $('bRec').innerHTML = '● 따라 말하기 녹음 <kbd>R</kbd>';
+  try { recorder && recorder.state !== 'inactive' && recorder.stop(); } catch (_) {}
+  if (recognizer) { const r = recognizer; recognizer = null; r.onend = () => grade(); try { r.stop(); } catch (_) { grade(); } setTimeout(() => grade(), 1800); }
+  else { $('score').textContent = '-'; status('녹음 완료. P로 들어보세요.'); }
+}
+let gradedFor = null;
+function grade() {
+  const key = idx + '|' + heardFinal + heardInterim; if (gradedFor === key) return; gradedFor = key;
+  const target = words(S[idx].en); const tn = target.map(norm); const hn = words((heardFinal + ' ' + heardInterim).trim()).map(norm).filter(Boolean);
+  // LCS alignment
+  const n = tn.length, m = hn.length, dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let a = n - 1; a >= 0; a--) for (let b = m - 1; b >= 0; b--) dp[a][b] = same(tn[a], hn[b]) ? dp[a + 1][b + 1] + 1 : Math.max(dp[a + 1][b], dp[a][b + 1]);
+  const marks = new Array(n).fill(false); let a = 0, b = 0;
+  while (a < n && b < m) { if (same(tn[a], hn[b])) { marks[a] = true; a++; b++; } else if (dp[a + 1][b] >= dp[a][b + 1]) a++; else b++; }
+  const scorable = tn.filter(Boolean).length || 1; const hit = marks.filter((x, k) => x && tn[k]).length;
+  const sc = Math.round(hit / scorable * 100);
+  $('score').textContent = hn.length ? sc + '점' : '0점'; $('score').className = 'score ' + cls(sc);
+  $('scoreNote').textContent = hn.length ? (sc >= 80 ? '좋아요! 이제 C로 억양·리듬을 맞춰보세요.' : sc >= 55 ? '빨간 단어를 클릭해 듣고 다시 해보세요.' : '0.75x로 낮춰 2~3번 더 듣고 다시 해보세요.') : '소리가 인식되지 않았어요. 마이크를 확인해 주세요.';
+  $('heard').textContent = '내 발음 인식: ' + ((heardFinal + heardInterim).trim() || '(없음)');
+  $('result').classList.add('show');
+  renderSentence(marks);
+  if (hn.length) { store.best[idx] = Math.max(store.best[idx] ?? 0, sc); save(); renderList(); renderSentence(marks); }
+  status('채점 완료. P 내 목소리 / C 원문 → 나 비교');
+}
+function same(x, y) { if (!x || !y) return false; if (x === y) return true; const strip = s => s.replace(/'/g, ''); if (strip(x) === strip(y)) return true; return lev(x, y) <= (x.length > 6 ? 1 : 0); }
+function lev(s, t) { const d = Array.from({ length: s.length + 1 }, (_, i) => [i]); for (let j = 1; j <= t.length; j++) d[0][j] = j; for (let i = 1; i <= s.length; i++) for (let j = 1; j <= t.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (s[i - 1] === t[j - 1] ? 0 : 1)); return d[s.length][t.length]; }
+let myAudio = null;
+function playMine(onEnd) { if (!myUrl) return; stopAll(); myAudio && myAudio.pause(); myAudio = new Audio(myUrl); myAudio.onended = () => onEnd && onEnd(); myAudio.play(); status('내 목소리 재생 중'); }
+function compare() { if (!myUrl) return; status('원문 재생 → 이어서 내 목소리'); playSeg(idx, () => setTimeout(() => playMine(() => status('비교 끝. 다르게 들린 부분을 다시 따라 해보세요.')), 500)); }
+
+// ---------- Controls ----------
+$('bPlay').onclick = () => { loopCount = 0; playSeg(idx); };
+$('bLoop').onclick = () => { loop = !loop; $('bLoop').classList.toggle('on', loop); loopCount = 0; if (loop) playSeg(idx); else stopAll(); };
+document.querySelectorAll('#speed button').forEach(b => b.onclick = () => { rate = +b.dataset.r; document.querySelectorAll('#speed button').forEach(x => x.classList.toggle('sel', x === b)); if (ready) player.setPlaybackRate(rate); });
+$('bHide').onclick = () => { hideText = !hideText; $('bHide').classList.toggle('on', hideText); renderSentence(); };
+$('bKo').onclick = () => { showKo = !showKo; $('bKo').classList.toggle('on', showKo); renderSentence(); };
+$('bRec').onclick = () => recording ? stopRec() : startRec(false);
+$('bShadow').onclick = () => recording ? stopRec() : startRec(true);
+$('bMine').onclick = () => playMine();
+$('bCmp').onclick = compare;
+$('bPrev').onclick = () => select(idx - 1, true);
+$('bNext').onclick = () => select(idx + 1, true);
+$('q').oninput = renderList;
+$('fWeak').onclick = () => { weakOnly = !weakOnly; $('fWeak').classList.toggle('on', weakOnly); renderList(); };
+document.querySelectorAll('.nudge button').forEach(b => b.onclick = () => { const [k, v] = b.dataset.n.split(','); const a = store.adj[idx] || { s: 0, e: 0 }; a[k] = Math.round((a[k] + +v) * 10) / 10; store.adj[idx] = a; save(); renderSentence(); playSeg(idx); });
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return; const k = e.key.toLowerCase();
+  if (e.code === 'Space') { e.preventDefault(); $('bPlay').click(); }
+  else if (k === 'arrowright') $('bNext').click(); else if (k === 'arrowleft') $('bPrev').click();
+  else if (k === 'l') $('bLoop').click(); else if (k === 'h') $('bHide').click(); else if (k === 'k') $('bKo').click();
+  else if (k === 'r') $('bRec').click(); else if (k === 's') $('bShadow').click(); else if (k === 'p') $('bMine').click(); else if (k === 'c') $('bCmp').click();
+  else if (k === '1') document.querySelector('#speed [data-r="0.5"]').click(); else if (k === '2') document.querySelector('#speed [data-r="0.75"]').click(); else if (k === '3') document.querySelector('#speed [data-r="1"]').click();
+});
+select(idx, false);
+</script>
+</body>
+</html>
