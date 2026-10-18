@@ -180,7 +180,7 @@ function playSeg(i, onEnd) {
       const st = player.getPlayerState();
       if (st === 1 && t >= g.s - 0.6 && t < g.e) { started = true; if (adShown) { adShown = false; status(''); } }
       else {
-        if (st === -1 && Date.now() - t0 > 1500) { adShown = true; status('YouTube 광고 재생 중이에요. 광고가 끝나면 자동으로 문장을 재생해요.'); t0 = Date.now(); }
+        if (st === -1 && Date.now() - t0 > 1500) { adShown = true; status('YouTube 광고 재생 중이에요. 영상의 건너뛰기(Skip/スキップ) 버튼을 누르거나 광고가 끝나면 자동으로 문장을 재생해요.'); t0 = Date.now(); }
         else if (st === 1 && Date.now() - t0 > 700) { t0 = Date.now(); player.seekTo(g.s, true); }
         else if ((st === 2 || st === 5) && Date.now() - t0 > 1500) { t0 = Date.now(); player.seekTo(g.s, true); player.playVideo(); }
         return;
